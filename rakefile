@@ -7,5 +7,21 @@ task :server do
   require 'rack/handler/puma'
   require_relative 'rackblog'
 
-  Rack::Handler::Puma.run Rackblog.new, {Port: 8081}
+  config = load_config
+  Rack::Handler::Puma.run Rackblog.new(config[:blog]), config[:rack]
+end
+
+def load_config
+  config_filename = 'config.json'
+  unless File.exist?(config_filename)
+    sample = "#{config_filename}.sample"
+    if File.exist?(sample)
+      puts "Copying sample config (first time only)"
+      FileUtils.copy(sample, config_filename)
+    else
+      puts "Missing #{config_filename} and no #{sample} found."
+      exit
+    end
+  end
+  JSON.parse(File.open('config.json').read, {symbolize_names: true})
 end

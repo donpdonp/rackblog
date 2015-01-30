@@ -3,15 +3,20 @@ require 'slim'
 require 'lmdb'
 
 class Rackblog
-  def initialize
+  def initialize(config)
+    @config = config
+    load_views
+    lmdb = LMDB.new('db')
+    @db = lmdb.database
+    puts "Database connected with #{@db.stat[:entries]} posts."
+  end
+
+  def load_views
     Slim::Engine.set_options({pretty: true})
     @layout = Slim::Template.new('views/layout.slim')
     @article = Slim::Template.new('views/article.slim')
     @post = Slim::Template.new('views/post.slim')
     @index = Slim::Template.new('views/index.slim')
-    lmdb = LMDB.new('db')
-    @db = lmdb.database
-    puts "Database connected with #{@db.stat[:entries]} posts."
   end
 
   def call(env)
