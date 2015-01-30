@@ -8,6 +8,7 @@ task :server do
   require_relative 'rackblog'
 
   config = load_config
+  FileUtils.mkdir_p(config[:db_dir])
   Rack::Handler::Puma.run Rackblog.new(config[:blog]), config[:rack]
 end
 
@@ -25,3 +26,4 @@ def load_config
   end
   JSON.parse(File.open('config.json').read, {symbolize_names: true})
 end
+
