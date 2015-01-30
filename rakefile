@@ -1,0 +1,11 @@
+task :default do
+  puts "rake server"
+end
+
+task :server do
+  require 'bundler/setup'
+  require 'rack'
+  require_relative 'rackblog'
+
+  Rack::Handler::WEBrick.run Rackblog.new, {Port: 8081}
+end
