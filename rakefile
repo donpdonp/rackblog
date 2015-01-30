@@ -4,8 +4,8 @@ end
 
 task :server do
   require 'bundler/setup'
-  require 'rack'
+  require 'rack/handler/puma'
   require_relative 'rackblog'
 
-  Rack::Handler::WEBrick.run Rackblog.new, {Port: 8081}
+  Rack::Handler::Puma.run Rackblog.new, {Port: 8081}
 end

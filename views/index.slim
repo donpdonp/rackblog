@@ -2,5 +2,6 @@
 ul
   - articles.each do |a|
     li
-      a href="#{a[0]}"
-        | #{a[1]['time']} #{a[1]['title']} #{a[1].inspect}
+      time datetime="#{a[1]['time']}"
+      = ' '
+      a href="#{a[0]}" #{a[1]['title']}

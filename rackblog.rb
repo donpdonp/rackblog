@@ -11,6 +11,7 @@ class Rackblog
     @index = Slim::Template.new('views/index.slim')
     lmdb = LMDB.new('db')
     @db = lmdb.database
+    puts "Database connected with #{@db.stat[:entries]} posts."
   end
 
   def call(env)
@@ -46,24 +47,22 @@ class Rackblog
     end
   end
 
-  def index
+  def index(start = nil)
     articles = []
-    puts @db.stat.inspect
     if @db.stat[:entries] > 0
       @db.cursor do |cursor|
         articles << cursor.last if articles.empty?
         15.times do
           next_art = cursor.prev
           if next_art
-            next_art[1] = JSON.parse(next_art[1])
             articles << next_art
           else
             break
           end
         end
       end
+      articles.each{|a| a[1]=JSON.parse(a[1])}
     end
-    puts articles.inspect
     layout(@index, {articles: articles})
   end
 
