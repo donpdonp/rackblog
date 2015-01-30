@@ -1,43 +1,35 @@
-require 'slim/include'
+require 'slim'
+require 'moneta'
 
 class Rackblog
   def initialize
     Slim::Engine.set_options({pretty: true})
     @layout = Slim::Template.new('views/layout.slim')
+    @article = Slim::Template.new('views/article.slim')
+    @post = Slim::Template.new('views/post.slim')
+    @db = Moneta.new(:LMDB, {dir: 'db'})
   end
 
   def call(env)
-    template = template_for(env['REQUEST_PATH'])
-    if template
-      html = render(template)
+    puts "db load #{env['REQUEST_PATH'].inspect}"
+    key = env['REQUEST_PATH']
+    if key == '/post'
+      html = @post.render
+    elsif @db.key?(key)
+      html = article(@db[key])
+    end
+    if html
       ['200', {'Content-Type' => 'text/html'}, [html]]
     else
       ['404', {'Content-Type' => 'text/html'}, ['Page not found']]
     end
   end
 
-  def view_path(path)
-    "views#{File.expand_path(path)}"
-  end
-
-  def template_for(path)
-    view = view_path(path)
-    if File.directory?(view)
-      view += 'index'
-    end
-    view += '.slim'
-    puts "testing #{view}"
-    if File.exist?(view)
-      puts "reading #{view}"
-      Slim::Template.new(view)
-    end
-  end
-
-  def render(template)
-    puts "about to render"
+  def article(markdown)
     @layout.render do |layout|
-      puts "i am layout block"
-      template.render
+      @article.render do |article|
+        markdown
+      end
     end
   end
 end
