@@ -43,9 +43,7 @@ class Rackblog
 
   def article(params)
     @layout.render do |layout|
-      @article.render do |article|
-        params['body']
-      end
+      @article.render(nil, params)
     end
   end
 
