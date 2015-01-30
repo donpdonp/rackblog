@@ -8,7 +8,7 @@ class Rackblog
     load_views
     lmdb = LMDB.new('db')
     @db = lmdb.database
-    puts "Database connected with #{@db.stat[:entries]} posts."
+    puts "Database connected with #{@db.stat[:entries]} posts on #{@config[:prefix]}"
   end
 
   def load_views
@@ -21,7 +21,7 @@ class Rackblog
 
   def call(env)
     req = Rack::Request.new(env)
-    path = URI.decode(env['REQUEST_PATH'])
+    path = my_path(URI.decode(env['REQUEST_PATH']))
     puts "** db load #{env['REQUEST_PATH'].inspect} decode: #{path}"
     headers = {'Content-Type' => 'text/html'}
 
@@ -33,7 +33,7 @@ class Rackblog
       elsif env['REQUEST_METHOD'] == 'POST'
         slug = article_save(req.params)
         puts "Slug: #{slug}"
-        post_url = "#{env['rack.url_scheme']}://#{env['HTTP_HOST']}#{slug}"
+        post_url = "#{env['rack.url_scheme']}://#{env['HTTP_HOST']}#{@config[:prefix]}#{slug}"
         puts "Redirect: #{post_url}"
         return [302, headers.merge({"Location" => post_url}), []]
       end
@@ -52,6 +52,16 @@ class Rackblog
     end
   end
 
+  def my_path(path)
+    if @config[:prefix]
+      new_path = path.sub(/#{@config[:prefix]}/,'')
+      new_path = "/" if new_path.empty?
+      new_path
+    else
+      path
+    end
+  end
+
   def index(start = nil)
     articles = []
     if @db.stat[:entries] > 0
@@ -66,7 +76,10 @@ class Rackblog
           end
         end
       end
-      articles.each{|a| a[1]=JSON.parse(a[1])}
+      articles.each do |a|
+        a[0]="#{@config[:prefix]}#{a[0]}"
+        a[1]=JSON.parse(a[1])
+      end
     end
     layout(@index, {articles: articles})
   end
@@ -90,5 +103,6 @@ class Rackblog
     @db[slug] = data.to_json
     URI.encode(slug)
   end
+
 end
 
