@@ -147,7 +147,8 @@ class Rackblog
 
   def layout(template, params = {})
     params.merge!({prefix: URI(@config[:url]).path})
-    layout_params = params.merge({name: @config[:name]})
+    layout_params = params.merge({name: @config[:name],
+                                  slogan: @config[:slogan]})
     @layout.render(nil, layout_params) do |layout|
       template.render(nil, params)
     end
