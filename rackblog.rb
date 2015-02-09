@@ -180,14 +180,14 @@ class Rackblog
   end
 
   def article_save(data)
-    puts "article_save: #{data.inspect}"
     now = Time.now
     data['time'] ||= now.iso8601
     data['tags'] = data['tags'].split(' ').map{|t| t.strip}
-    data['slug'] = to_slug("/#{now.year}/#{"%02d"%now.month}/#{"%02d"%now.day}/#{data['title']}")
+    data['title'].strip!
+    data['slug'] ||= to_slug("/#{now.year}/#{"%02d"%now.month}/#{"%02d"%now.day}/#{data['title']}")
     puts "Saving Key #{data['slug'].inspect} => #{data.to_json}"
     @db[data['slug']] = data.to_json
-    URI.encode(slug)
+    URI.encode(data['slug'][1,data['slug'].length-1])
   end
 
 end

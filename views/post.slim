@@ -1,4 +1,4 @@
-form method='post'
+form method='post' action="#{prefix}post"
   .title
     | Title
     input name='title' value="#{article['title'] if defined?(article)}"
