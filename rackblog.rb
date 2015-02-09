@@ -1,6 +1,7 @@
 require 'json'
 require 'slim'
 require 'lmdb'
+require 'httparty'
 
 class Rackblog
   # Article
@@ -23,12 +24,14 @@ class Rackblog
     @article = Slim::Template.new('views/article.slim')
     @post = Slim::Template.new('views/post.slim')
     @index = Slim::Template.new('views/index.slim')
+    @admin = Slim::Template.new('views/admin.slim')
   end
 
   def call(env)
     req = Rack::Request.new(env)
     path = my_path(URI.decode(env['REQUEST_PATH']))
     path_parts = path.split('/'); path_parts.shift
+    qparams = query_decode(env["QUERY_STRING"])
     puts "** db load #{env['REQUEST_PATH'].inspect} decode: #{path} #{path_parts}"
     headers = {'Content-Type' => 'text/html'}
 
@@ -47,6 +50,28 @@ class Rackblog
     elsif path_parts[0] == 'tag'
       puts "Tag search #{path_parts[1]}"
       html = tags(path_parts[1])
+    elsif path_parts[0] == 'admin'
+      puts "Admin cookies: #{req.cookies.inspect}"
+      if req.cookies['rackblog']
+        html = layout(@admin)
+      elsif qparams['token']
+        puts "qparams: #{qparams}"
+        resp = HTTParty.post 'https://indieauth.com/auth',
+                                 {query: {code: qparams['token'],
+                                          redirect_uri: "#{@config[:blog][:url]}/admin"}}
+        auth = query_decode(resp.parsed_response)
+        if auth['error']
+          html = auth['error_description']
+        else
+          Rack::Utils.set_cookie_header!(headers, "rackblog", {:value => "", :path => @config[:prefix]})
+          return [302, headers.merge({"Location" => "#{@config[:blog][:url]}/admin"}), []]
+        end
+      else
+        qstr = URI.encode_www_form({:me=>@config[:indieauth],
+                                    :redirect_uri=>"#{@config[:blog][:url]}/admin"})
+        auth_url = "https://indieauth.com/auth?#{qstr}"
+        return [302, headers.merge({"Location" => auth_url}), []]
+      end
     else
       json = @db.get(path)
       if json
@@ -123,6 +148,10 @@ class Rackblog
 
   def to_slug(str)
     str.gsub(' ','-')
+  end
+
+  def query_decode(query)
+    URI.decode_www_form(query).reduce({}){|h, v| h[v[0]]=v[1]; h}
   end
 
   def article_save(data)
