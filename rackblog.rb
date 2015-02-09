@@ -68,29 +68,41 @@ class Rackblog
 
   def tags(tag)
     articles = []
+    if @db.stat[:entries] > 0
+      # table scan
+      @db.cursor do |cursor|
+        record = cursor.last
+        while record do
+          article = decode(record)
+          puts "art: #{article.inspect}"
+          if article[1]['tags'].include?(tag)
+            articles << article
+          end
+          record = cursor.prev
+        end
+      end
+    end
     layout(@index, {articles: articles})
   end
 
   def index(start = nil)
-    articles = []
+    records = []
     if @db.stat[:entries] > 0
       @db.cursor do |cursor|
-        articles << cursor.last if articles.empty?
+        records << cursor.last if records.empty?
         15.times do
           next_art = cursor.prev
-          if next_art
-            articles << next_art
-          else
-            break
-          end
+          break unless next_art
+          records << next_art
         end
       end
-      articles.each do |a|
-        a[0]="#{@config[:prefix]}#{a[0]}"
-        a[1]=JSON.parse(a[1])
-      end
+      articles = records.map{|record| decode(record)}
     end
     layout(@index, {articles: articles})
+  end
+
+  def decode(record)
+    ["#{@config[:prefix]}#{record[0]}", JSON.parse(record[1]) ]
   end
 
   def layout(template, params)
@@ -104,11 +116,13 @@ class Rackblog
   end
 
   def article_save(data)
-    puts data.inspect
+    puts "article_save: #{data.inspect}"
     now = Time.now
     data['time'] = now.iso8601
+    data['tags'] = data['tags'].split(' ').map{|t| t.strip}
     slug = to_slug("/#{now.year}/#{"%02d"%now.month}/#{"%02d"%now.day}/#{data['title']}")
-    puts "Saving Key #{slug.inspect}"
+    puts "wtf tags #{data['tags'].inspect}"
+    puts "Saving Key #{slug.inspect} => #{data.to_json}"
     @db[slug] = data.to_json
     URI.encode(slug)
   end
