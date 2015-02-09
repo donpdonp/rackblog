@@ -14,25 +14,29 @@ class Rackblog
   def initialize(config)
     @config = config
     @config[:url]+= "/" unless @config[:url][-1] == '/'
-    load_views
+    Slim::Engine.set_options({pretty: true})
+    @viewcache = {}
     lmdb = LMDB.new('db')
     @db = lmdb.database
     puts "Database connected with #{@db.stat[:entries]} posts on #{@config[:url]}"
   end
 
-  def load_views
-    Slim::Engine.set_options({pretty: true})
-    @layout = Slim::Template.new('views/layout.slim')
-    @article = Slim::Template.new('views/article.slim')
-    @post = Slim::Template.new('views/post.slim')
-    @index = Slim::Template.new('views/index.slim')
-    @admin = Slim::Template.new('views/admin.slim')
+  def load_view(name)
+    @viewcache[name] ||= {last: Time.parse('1990-01-01')}
+    filename = "views/#{name}.slim"
+    last = File.stat(filename).mtime
+    if last > @viewcache[name][:last]
+      puts "template cache load #{filename}"
+      @viewcache[name][:template] = Slim::Template.new(filename)
+      @viewcache[name][:last] = last
+    end
+    @viewcache[name][:template]
   end
 
   def call(env)
     req = Rack::Request.new(env)
     path = my_path(URI.decode(env['REQUEST_PATH']))
-    path_parts = path.split('/')
+    path_parts = path.split('/'); path_parts.shift
     qparams = query_decode(env["QUERY_STRING"])
     puts "** req: #{env["HTTP_ACCEPT"].split(';')[0].split(',')[0]} #{env['REQUEST_PATH'].inspect} decode: #{path.inspect} => #{path_parts} #{qparams}"
     headers = {'Content-Type' => 'text/html'}
@@ -40,14 +44,18 @@ class Rackblog
     if path == '/'
       html = index
     elsif path_parts[0] == 'post'
-      if env['REQUEST_METHOD'] == 'GET'
-        html = layout(@post)
-      elsif env['REQUEST_METHOD'] == 'POST'
-        slug = article_save(req.params)
-        puts "Slug: #{slug}"
-        post_url = "#{env['rack.url_scheme']}://#{env['HTTP_HOST']}#{URI(@config[:url]).path}#{slug}"
-        puts "Redirect: #{post_url}"
-        return [302, headers.merge({"Location" => post_url}), []]
+      if auth_ok?(req)
+        if env['REQUEST_METHOD'] == 'GET'
+          html = layout('post')
+        elsif env['REQUEST_METHOD'] == 'POST'
+          slug = article_save(req.params)
+          puts "Slug: #{slug}"
+          post_url = "#{env['rack.url_scheme']}://#{env['HTTP_HOST']}#{URI(@config[:url]).path}#{slug}"
+          puts "Redirect: #{post_url}"
+          return [302, headers.merge({"Location" => post_url}), []]
+        end
+      else
+        return [302, headers.merge({"Location" => "#{@config[:url]}"}), []]
       end
     elsif path_parts[0] == 'tag'
       puts "Tag search #{path_parts[1]}"
@@ -59,7 +67,7 @@ class Rackblog
                                                                 :path => URI(@config[:url]).path})
         return [302, headers.merge({"Location" => "#{@config[:url]}"}), []]
       elsif auth_ok?(req)
-        html = layout(@admin)
+        html = layout('admin')
       elsif qparams['token']
         resp = HTTParty.post 'https://indieauth.com/auth',
                                  {query: {code: qparams['token'],
@@ -82,7 +90,7 @@ class Rackblog
       json = @db.get(path)
       if json
         article = decode([path, json])
-        html = layout(@article, {article: article[1]})
+        html = layout('article', {article: article[1]})
       end
     end
 
@@ -119,7 +127,7 @@ class Rackblog
       end
       puts "Scanned #{count} articles for tag #{tag}. #{articles.size} found. #{"%0.2f"%(Time.now-start)} seconds."
     end
-    layout(@index, {articles: articles})
+    layout('index', {articles: articles})
   end
 
   def index(start = nil)
@@ -135,7 +143,7 @@ class Rackblog
       end
       articles = records.map{|record| decode(record)}
     end
-    layout(@index, {articles: articles})
+    layout('index', {articles: articles})
   end
 
   def decode(record)
@@ -145,12 +153,12 @@ class Rackblog
     [full, article]
   end
 
-  def layout(template, params = {})
+  def layout(template_name, params = {})
     params.merge!({prefix: URI(@config[:url]).path})
     layout_params = params.merge({name: @config[:name],
                                   slogan: @config[:slogan]})
-    @layout.render(nil, layout_params) do |layout|
-      template.render(nil, params)
+    load_view('layout').render(nil, layout_params) do |layout|
+      load_view(template_name).render(nil, params)
     end
   end
 
