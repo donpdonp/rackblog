@@ -141,7 +141,7 @@ class Rackblog
   def decode(record)
     article = JSON.parse(record[1])
     article['time'] = Time.parse(article['time'])
-    [record[0], article]
+    [URI.join(@config[:url], record[0]), article]
   end
 
   def layout(template, params = {})
@@ -164,10 +164,9 @@ class Rackblog
     now = Time.now
     data['time'] ||= now.iso8601
     data['tags'] = data['tags'].split(' ').map{|t| t.strip}
-    slug = to_slug("/#{now.year}/#{"%02d"%now.month}/#{"%02d"%now.day}/#{data['title']}")
-    puts "wtf tags #{data['tags'].inspect}"
-    puts "Saving Key #{slug.inspect} => #{data.to_json}"
-    @db[slug] = data.to_json
+    data['slug'] = to_slug("/#{now.year}/#{"%02d"%now.month}/#{"%02d"%now.day}/#{data['title']}")
+    puts "Saving Key #{data['slug'].inspect} => #{data.to_json}"
+    @db[data['slug']] = data.to_json
     URI.encode(slug)
   end
 
