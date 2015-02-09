@@ -34,7 +34,7 @@ class Rackblog
     path = my_path(URI.decode(env['REQUEST_PATH']))
     path_parts = path.split('/')
     qparams = query_decode(env["QUERY_STRING"])
-    puts "** req: #{env['REQUEST_PATH'].inspect} decode: #{path.inspect} => #{path_parts} #{qparams}"
+    puts "** req: #{env["HTTP_ACCEPT"].split(';')[0].split(',')[0]} #{env['REQUEST_PATH'].inspect} decode: #{path.inspect} => #{path_parts} #{qparams}"
     headers = {'Content-Type' => 'text/html'}
 
     if path == ''
