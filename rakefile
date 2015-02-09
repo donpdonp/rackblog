@@ -6,6 +6,7 @@ task :server do
   require_relative 'rackblog'
 
   config = load_config
+  $0 = "rackblog #{config[:blog][:name]}"
   FileUtils.mkdir_p(config[:db_dir])
   blog = Rack::Builder.new do
     #use Rack::CommonLogger
