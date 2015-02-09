@@ -3,6 +3,12 @@ require 'slim'
 require 'lmdb'
 
 class Rackblog
+  # Article
+  # {"title"=>"I am title",
+  #  "tags"=>["frog", "bed"],
+  #  "body"=>"this is the body.",
+  #  "time"=>"2015-02-08T17:04:23-08:00"}
+
   def initialize(config)
     @config = config
     load_views
