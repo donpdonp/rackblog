@@ -1,11 +1,17 @@
-.article
-  .title
-    == article['title']
-  .time
-    time datetime="#{article['time']}" #{article['time'].strftime("%Y-%b-%d")}
+.article.h-entry
+  .header
+    .left
+      .title.p-name
+        == article['title']
+      .time
+        time.dt-published datetime="#{article['time']}" #{article['time'].strftime("%Y-%b-%d")}
+    .right
+      .author.p-author Don Park
+      .pic
+        img src="https://en.gravatar.com/userimage/3240117/2383955e328bce58cf2f8c5f40c10ecc.jpg?size=50"
   .tags
     - article['tags'].each do |tag|
       a href="#{prefix}/tag/#{tag}"
         == tag
-  .body
+  .body.e-content
     == GitHub::Markdown.render(article['body'])

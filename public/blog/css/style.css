@@ -29,6 +29,9 @@ a { color: black; }
   font-size: 120%;
 }
 
+.article {
+  width: 80%;
+}
 .article .time {
   margin-left: 0.5em;
   font-size: 90%;
@@ -36,5 +39,10 @@ a { color: black; }
 
 .article .title {
   font-size: 120%;
+}
+
+.article .header {
+  display: flex;
+  justify-content: space-between;
 }
 
