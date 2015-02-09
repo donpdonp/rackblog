@@ -57,7 +57,7 @@ class Rackblog
         Rack::Utils.delete_cookie_header!(headers, "rackblog", {:value => "",
                                                                 :path => URI(@config[:url]).path})
         return [302, headers.merge({"Location" => "#{@config[:url]}"}), []]
-      elsif req.cookies['rackblog']
+      elsif auth_ok?(req)
         html = layout(@admin)
       elsif qparams['token']
         resp = HTTParty.post 'https://indieauth.com/auth',
@@ -94,6 +94,10 @@ class Rackblog
 
   def my_path(path)
     path.sub(/#{URI(@config[:url]).path}/,'')
+  end
+
+  def auth_ok?(req)
+    req.cookies['rackblog']
   end
 
   def tags(tag)
