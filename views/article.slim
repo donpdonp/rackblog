@@ -9,9 +9,10 @@
       .author.p-author Don Park
       .pic
         img src="https://en.gravatar.com/userimage/3240117/2383955e328bce58cf2f8c5f40c10ecc.jpg?size=50"
-  .tags
-    - article['tags'].each do |tag|
-      a href="#{prefix}/tag/#{tag}"
-        == tag
   .body.e-content
     == GitHub::Markdown.render(article['body'])
+  .tags
+    | tags:
+    - article['tags'].each do |tag|
+      a.tag href="#{prefix}tag/#{tag}"
+        == tag

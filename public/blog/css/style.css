@@ -18,6 +18,8 @@ a { color: black; }
   background: #eee;
   width: 80%;
   margin: 0.5em 0;
+  display: flex;
+  justify-content: space-between;
 }
 
 .articles-list .time {
@@ -32,6 +34,7 @@ a { color: black; }
 .article {
   width: 80%;
 }
+
 .article .time {
   margin-left: 0.5em;
   font-size: 90%;
@@ -44,6 +47,10 @@ a { color: black; }
 .article .header {
   display: flex;
   justify-content: space-between;
+}
+
+.article .tag {
+  margin-left: 0.2em;
 }
 
 .article-post textarea {
