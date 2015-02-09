@@ -1,6 +1,7 @@
 { "rack"     : { "Port": 8081},
   "db_dir"   : "./db",
-  "blog"     : { "url" : "http://localhost:8081/blog" },
-  "indieauth": { "me" : "http://example.org"}
+  "blog"     : { "url" : "http://localhost:8081/blog",
+                 "indieauth": "http://example.org"
+               }
 }
 

@@ -12,10 +12,11 @@ class Rackblog
 
   def initialize(config)
     @config = config
+    @config[:url]+= "/" unless @config[:url][-1] == '/'
     load_views
     lmdb = LMDB.new('db')
     @db = lmdb.database
-    puts "Database connected with #{@db.stat[:entries]} posts on #{@config[:prefix]}"
+    puts "Database connected with #{@db.stat[:entries]} posts on #{@config[:url]}"
   end
 
   def load_views
@@ -30,9 +31,9 @@ class Rackblog
   def call(env)
     req = Rack::Request.new(env)
     path = my_path(URI.decode(env['REQUEST_PATH']))
-    path_parts = path.split('/'); path_parts.shift
+    path_parts = path.split('/')
     qparams = query_decode(env["QUERY_STRING"])
-    puts "** db load #{env['REQUEST_PATH'].inspect} decode: #{path} #{path_parts}"
+    puts "** req: #{env['REQUEST_PATH'].inspect} decode: #{path} => #{path_parts} #{qparams}"
     headers = {'Content-Type' => 'text/html'}
 
     if path == '/'
@@ -43,7 +44,7 @@ class Rackblog
       elsif env['REQUEST_METHOD'] == 'POST'
         slug = article_save(req.params)
         puts "Slug: #{slug}"
-        post_url = "#{env['rack.url_scheme']}://#{env['HTTP_HOST']}#{@config[:prefix]}#{slug}"
+        post_url = "#{env['rack.url_scheme']}://#{env['HTTP_HOST']}#{URI(@config[:url]).path}#{slug}"
         puts "Redirect: #{post_url}"
         return [302, headers.merge({"Location" => post_url}), []]
       end
@@ -51,24 +52,28 @@ class Rackblog
       puts "Tag search #{path_parts[1]}"
       html = tags(path_parts[1])
     elsif path_parts[0] == 'admin'
-      puts "Admin cookies: #{req.cookies.inspect}"
-      if req.cookies['rackblog']
+      puts "cookies: #{req.cookies.inspect}"
+      if qparams['logout']
+        Rack::Utils.delete_cookie_header!(headers, "rackblog", {:value => "",
+                                                                :path => URI(@config[:url]).path})
+        return [302, headers.merge({"Location" => "#{@config[:url]}"}), []]
+      elsif req.cookies['rackblog']
         html = layout(@admin)
       elsif qparams['token']
-        puts "qparams: #{qparams}"
         resp = HTTParty.post 'https://indieauth.com/auth',
                                  {query: {code: qparams['token'],
-                                          redirect_uri: "#{@config[:blog][:url]}/admin"}}
+                                          redirect_uri: "#{@config[:url]}/admin"}}
         auth = query_decode(resp.parsed_response)
         if auth['error']
           html = auth['error_description']
         else
-          Rack::Utils.set_cookie_header!(headers, "rackblog", {:value => "", :path => @config[:prefix]})
-          return [302, headers.merge({"Location" => "#{@config[:blog][:url]}/admin"}), []]
+          Rack::Utils.set_cookie_header!(headers, "rackblog", {:value => "",
+                                                               :path => URI(@config[:url]).path})
+          return [302, headers.merge({"Location" => "#{@config[:url]}/admin"}), []]
         end
       else
         qstr = URI.encode_www_form({:me=>@config[:indieauth],
-                                    :redirect_uri=>"#{@config[:blog][:url]}/admin"})
+                                    :redirect_uri=>"#{@config[:url]}/admin"})
         auth_url = "https://indieauth.com/auth?#{qstr}"
         return [302, headers.merge({"Location" => auth_url}), []]
       end
@@ -76,8 +81,7 @@ class Rackblog
       json = @db.get(path)
       if json
         article = decode([path, json])
-        puts article.inspect
-        html = layout(@article, {article: article[1], prefix: @config[:prefix]})
+        html = layout(@article, {article: article[1]})
       end
     end
 
@@ -89,13 +93,7 @@ class Rackblog
   end
 
   def my_path(path)
-    if @config[:prefix]
-      new_path = path.sub(/#{@config[:prefix]}/,'')
-      new_path = "/" if new_path.empty?
-      new_path
-    else
-      path
-    end
+    path.sub(/#{URI(@config[:url]).path}/,'')
   end
 
   def tags(tag)
@@ -116,7 +114,7 @@ class Rackblog
       end
       puts "Scanned #{count} articles for tag #{tag}. #{articles.size} found. #{"%0.2f"%(Time.now-start)} seconds."
     end
-    layout(@index, {articles: articles, prefix: @config[:prefix]})
+    layout(@index, {articles: articles})
   end
 
   def index(start = nil)
@@ -132,7 +130,7 @@ class Rackblog
       end
       articles = records.map{|record| decode(record)}
     end
-    layout(@index, {articles: articles, prefix: @config[:prefix]})
+    layout(@index, {articles: articles})
   end
 
   def decode(record)
@@ -140,7 +138,7 @@ class Rackblog
   end
 
   def layout(template, params = {})
-    params.merge!({prefix: @config[:prefix]})
+    params.merge!({prefix: URI(@config[:url]).path})
     @layout.render(nil, params) do |layout|
       template.render(nil, params)
     end
