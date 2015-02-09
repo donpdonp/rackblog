@@ -1,6 +1,4 @@
-task :default do
-  puts "rake server"
-end
+task :default => [:server]
 
 task :server do
   require 'bundler/setup'

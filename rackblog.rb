@@ -22,12 +22,13 @@ class Rackblog
   def call(env)
     req = Rack::Request.new(env)
     path = my_path(URI.decode(env['REQUEST_PATH']))
-    puts "** db load #{env['REQUEST_PATH'].inspect} decode: #{path}"
+    path_parts = path.split('/'); path_parts.shift
+    puts "** db load #{env['REQUEST_PATH'].inspect} decode: #{path} #{path_parts}"
     headers = {'Content-Type' => 'text/html'}
 
     if path == '/'
       html = index
-    elsif path.split('/')[1] == 'post'
+    elsif path_parts[0] == 'post'
       if env['REQUEST_METHOD'] == 'GET'
         html = @post.render
       elsif env['REQUEST_METHOD'] == 'POST'
@@ -37,6 +38,9 @@ class Rackblog
         puts "Redirect: #{post_url}"
         return [302, headers.merge({"Location" => post_url}), []]
       end
+    elsif path_parts[0] == 'tag'
+      puts "Tag search #{path_parts[1]}"
+      html = tags(path_parts[1])
     else
       json = @db.get(path)
       if json
@@ -60,6 +64,11 @@ class Rackblog
     else
       path
     end
+  end
+
+  def tags(tag)
+    articles = []
+    layout(@index, {articles: articles})
   end
 
   def index(start = nil)
