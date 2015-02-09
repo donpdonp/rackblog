@@ -46,3 +46,7 @@ a { color: black; }
   justify-content: space-between;
 }
 
+.article-post textarea {
+  width: 80em;
+  height: 30em;
+}
