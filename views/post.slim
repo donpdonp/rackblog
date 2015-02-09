@@ -1,5 +1,7 @@
 .article-post
   form method='post' action="#{prefix}post"
+    .slug.hidden
+      input name='slug' value="#{article['slug'] if defined?(article)}"
     .title
       | Title
       input name='title' value="#{article['title'] if defined?(article)}"

@@ -1,5 +1,6 @@
 ul { margin: 0; padding: 0;}
 a { color: black; }
+.hidden { display: none;}
 
 .content {
   padding: 1em;

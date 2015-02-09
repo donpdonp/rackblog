@@ -49,7 +49,6 @@ class Rackblog
           html = layout('post')
         elsif env['REQUEST_METHOD'] == 'POST'
           slug = article_save(req.params)
-          puts "Slug: #{slug}"
           post_url = "#{env['rack.url_scheme']}://#{env['HTTP_HOST']}#{URI(@config[:url]).path}#{slug}"
           puts "Redirect: #{post_url}"
           return [302, headers.merge({"Location" => post_url}), []]
@@ -172,7 +171,7 @@ class Rackblog
   end
 
   def to_slug(str)
-    str.gsub(' ','-')
+    str.gsub(' ','-').downcase
   end
 
   def query_decode(query)
