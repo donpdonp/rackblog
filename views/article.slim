@@ -1,10 +1,11 @@
-.head
-  == article['title']
-.time
-  == article['time'].strftime("%Y-%m-%d")
-.tags
-  - article['tags'].each do |tag|
-    a href="#{prefix}/tag/#{tag}"
-      == tag
-.body
-  == GitHub::Markdown.render(article['body'])
+.article
+  .title
+    == article['title']
+  .time
+    time datetime="#{article['time']}" #{article['time'].strftime("%Y-%b-%d")}
+  .tags
+    - article['tags'].each do |tag|
+      a href="#{prefix}/tag/#{tag}"
+        == tag
+  .body
+    == GitHub::Markdown.render(article['body'])

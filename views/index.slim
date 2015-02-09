@@ -1,7 +1,10 @@
 .main
-ul.articles
+ul.articles-list
   - articles.each do |article|
     li
-      time datetime="#{article[1]['time']}" #{article[1]['time'].strftime("%Y-%m-%d")}
-      a href="#{article[0]}"
-        span.title #{article[1]['title']}
+      .article-miniblock
+        span.time
+          time datetime="#{article[1]['time']}" #{article[1]['time'].strftime("%Y-%b-%d")}
+        span.title
+          a href="#{article[0]}"
+            span.title #{article[1]['title']}

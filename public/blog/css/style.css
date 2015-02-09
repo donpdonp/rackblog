@@ -1,4 +1,5 @@
 ul { margin: 0; padding: 0;}
+a { color: black; }
 
 .content {
   padding: 1em;
@@ -9,10 +10,31 @@ ul { margin: 0; padding: 0;}
   justify-content: space-between;
 }
 
-.articles {
+.articles-list {
   list-style-type: none;
 }
 
-.articles time {
-  padding-right: 0.5em;
+.articles-list .article-miniblock {
+  background: #eee;
+  width: 80%;
+  margin: 0.5em 0;
 }
+
+.articles-list .time {
+  display: inline-block;
+  width: 7em;
+}
+
+.articles-list .title {
+  font-size: 120%;
+}
+
+.article .time {
+  margin-left: 0.5em;
+  font-size: 90%;
+}
+
+.article .title {
+  font-size: 120%;
+}
+
