@@ -44,8 +44,9 @@ class Rackblog
     else
       json = @db.get(path)
       if json
-        params = JSON.parse(json)
-        html = layout(@article, params)
+        article = decode([path, json])
+        puts article.inspect
+        html = layout(@article, {article: article[1], prefix: @config[:prefix]})
       end
     end
 
@@ -68,21 +69,23 @@ class Rackblog
 
   def tags(tag)
     articles = []
-    if @db.stat[:entries] > 0
+    count = @db.stat[:entries]
+    if count > 0
+      start = Time.now
       # table scan
       @db.cursor do |cursor|
         record = cursor.last
         while record do
           article = decode(record)
-          puts "art: #{article.inspect}"
           if article[1]['tags'].include?(tag)
             articles << article
           end
           record = cursor.prev
         end
       end
+      puts "Scanned #{count} articles for tag #{tag}. #{articles.size} found. #{"%0.2f"%(Time.now-start)} seconds."
     end
-    layout(@index, {articles: articles})
+    layout(@index, {articles: articles, prefix: @config[:prefix]})
   end
 
   def index(start = nil)
@@ -98,15 +101,15 @@ class Rackblog
       end
       articles = records.map{|record| decode(record)}
     end
-    layout(@index, {articles: articles})
+    layout(@index, {articles: articles, prefix: @config[:prefix]})
   end
 
   def decode(record)
-    ["#{@config[:prefix]}#{record[0]}", JSON.parse(record[1]) ]
+    [record[0], JSON.parse(record[1])]
   end
 
   def layout(template, params)
-    @layout.render do |layout|
+    @layout.render(nil, params) do |layout|
       template.render(nil, params)
     end
   end

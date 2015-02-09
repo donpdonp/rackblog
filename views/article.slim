@@ -1,7 +1,8 @@
 .head
-  == title
+  == article['title']
 .tags
-  - tags.each do |tag|
-    == tag
+  - article['tags'].each do |tag|
+    a href="#{prefix}/tag/#{tag}"
+      == tag
 .body
-  == body
+  == article['body']
