@@ -1,11 +1,12 @@
 form method='post'
   .title
     | Title
-    input name='title'
+    input name='title' value="#{article['title'] if defined?(article)}"
   .tags
     | Tags
-    input name='tags'
+    input name='tags' value="#{article['tags'].join(' ') if defined?(article)}"
   .body
     textarea name='body'
+      | #{article['body'] if defined?(article)}
   .cmd
     input type='submit' value='Post'

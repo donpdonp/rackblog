@@ -87,10 +87,19 @@ class Rackblog
         return [302, headers.merge({"Location" => auth_url}), []]
       end
     else
+      edit = path_parts[-1] == 'edit'
+      if edit
+        path = '/'+path_parts[0, path_parts.length-1].join('/')
+        puts "edit new path #{path}"
+      end
       json = @db.get(path)
       if json
         article = decode([path, json])
-        html = layout('article', {article: article[1]})
+        if edit
+          html = layout('post', {article: article[1]})
+        else
+          html = layout('article', {article: article[1]})
+        end
       end
     end
 
