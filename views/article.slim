@@ -1,8 +1,10 @@
 .head
   == article['title']
+.time
+  == article['time']
 .tags
   - article['tags'].each do |tag|
     a href="#{prefix}/tag/#{tag}"
       == tag
 .body
-  == article['body']
+  == GitHub::Markdown.render(article['body'])

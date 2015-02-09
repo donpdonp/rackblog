@@ -2,6 +2,6 @@
 ul
   - articles.each do |a|
     li
-      time datetime="#{a[1]['time']}" #{a[1]['time']}
-      = ' '
-      a href="#{prefix}#{a[0]}" #{a[1]['title']}
+      a href="#{prefix}#{a[0]}"
+        time datetime="#{a[1]['time']}" #{a[1]['time'].strftime("%Y-%m-%d")}
+        span.title #{a[1]['title']}

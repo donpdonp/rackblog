@@ -2,6 +2,7 @@ require 'json'
 require 'slim'
 require 'lmdb'
 require 'httparty'
+require 'github/markdown'
 
 class Rackblog
   # Article
@@ -138,7 +139,9 @@ class Rackblog
   end
 
   def decode(record)
-    [record[0], JSON.parse(record[1])]
+    article = JSON.parse(record[1])
+    article['time'] = Time.parse(article['time'])
+    [record[0], article]
   end
 
   def layout(template, params = {})
