@@ -1,7 +1,7 @@
 .head
   == article['title']
 .time
-  == article['time']
+  == article['time'].strftime("%Y-%m-%d")
 .tags
   - article['tags'].each do |tag|
     a href="#{prefix}/tag/#{tag}"

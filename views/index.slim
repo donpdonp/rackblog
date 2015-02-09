@@ -1,7 +1,7 @@
-.main Post list
-ul
+.main
+ul.articles
   - articles.each do |article|
     li
+      time datetime="#{article[1]['time']}" #{article[1]['time'].strftime("%Y-%m-%d")}
       a href="#{article[0]}"
-        time datetime="#{article[1]['time']}" #{article[1]['time'].strftime("%Y-%m-%d")}
         span.title #{article[1]['title']}

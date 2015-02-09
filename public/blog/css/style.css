@@ -1,0 +1,20 @@
+body {
+
+}
+
+.content {
+  padding: 2em;
+}
+
+.navbar {
+  display: flex;
+  justify-content: space-between;
+}
+
+.articles {
+  list-style-type: none;
+}
+
+.articles time {
+  padding-right: 0.5em;
+}
