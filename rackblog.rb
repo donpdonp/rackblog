@@ -95,7 +95,7 @@ class Rackblog
       json = @db.get(path)
       if json
         article = decode([path, json])
-        if edit
+        if edit && auth_ok?(req)
           html = layout('post', {article: article[1]})
         else
           html = layout('article', {article: article[1]})
