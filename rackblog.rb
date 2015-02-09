@@ -30,7 +30,7 @@ class Rackblog
       html = index
     elsif path_parts[0] == 'post'
       if env['REQUEST_METHOD'] == 'GET'
-        html = @post.render
+        html = layout(@post)
       elsif env['REQUEST_METHOD'] == 'POST'
         slug = article_save(req.params)
         puts "Slug: #{slug}"
@@ -108,7 +108,8 @@ class Rackblog
     [record[0], JSON.parse(record[1])]
   end
 
-  def layout(template, params)
+  def layout(template, params = {})
+    params.merge!({prefix: @config[:prefix]})
     @layout.render(nil, params) do |layout|
       template.render(nil, params)
     end
