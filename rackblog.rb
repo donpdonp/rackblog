@@ -33,10 +33,10 @@ class Rackblog
     path = my_path(URI.decode(env['REQUEST_PATH']))
     path_parts = path.split('/')
     qparams = query_decode(env["QUERY_STRING"])
-    puts "** req: #{env['REQUEST_PATH'].inspect} decode: #{path} => #{path_parts} #{qparams}"
+    puts "** req: #{env['REQUEST_PATH'].inspect} decode: #{path.inspect} => #{path_parts} #{qparams}"
     headers = {'Content-Type' => 'text/html'}
 
-    if path == '/'
+    if path == ''
       html = index
     elsif path_parts[0] == 'post'
       if env['REQUEST_METHOD'] == 'GET'
@@ -62,18 +62,18 @@ class Rackblog
       elsif qparams['token']
         resp = HTTParty.post 'https://indieauth.com/auth',
                                  {query: {code: qparams['token'],
-                                          redirect_uri: "#{@config[:url]}/admin"}}
+                                          redirect_uri: "#{@config[:url]}admin"}}
         auth = query_decode(resp.parsed_response)
         if auth['error']
           html = auth['error_description']
         else
           Rack::Utils.set_cookie_header!(headers, "rackblog", {:value => "",
                                                                :path => URI(@config[:url]).path})
-          return [302, headers.merge({"Location" => "#{@config[:url]}/admin"}), []]
+          return [302, headers.merge({"Location" => "#{@config[:url]}admin"}), []]
         end
       else
         qstr = URI.encode_www_form({:me=>@config[:indieauth],
-                                    :redirect_uri=>"#{@config[:url]}/admin"})
+                                    :redirect_uri=>"#{@config[:url]}admin"})
         auth_url = "https://indieauth.com/auth?#{qstr}"
         return [302, headers.merge({"Location" => auth_url}), []]
       end
