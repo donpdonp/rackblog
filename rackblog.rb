@@ -99,7 +99,7 @@ class Rackblog
     if @db.stat[:entries] > 0
       @db.cursor do |cursor|
         records << cursor.last if records.empty?
-        15.times do
+        loop do
           next_art = cursor.prev
           break unless next_art
           records << next_art
@@ -128,7 +128,7 @@ class Rackblog
   def article_save(data)
     puts "article_save: #{data.inspect}"
     now = Time.now
-    data['time'] = now.iso8601
+    data['time'] ||= now.iso8601
     data['tags'] = data['tags'].split(' ').map{|t| t.strip}
     slug = to_slug("/#{now.year}/#{"%02d"%now.month}/#{"%02d"%now.day}/#{data['title']}")
     puts "wtf tags #{data['tags'].inspect}"
