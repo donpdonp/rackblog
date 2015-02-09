@@ -8,7 +8,7 @@ task :server do
   config = load_config
   FileUtils.mkdir_p(config[:db_dir])
   blog = Rack::Builder.new do
-    use Rack::CommonLogger
+    #use Rack::CommonLogger
     use Rack::ShowExceptions
     use Rack::Lint
     #use Rack::Static, :urls => ["/css", "/img"], :root => "public"

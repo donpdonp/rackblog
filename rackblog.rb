@@ -37,7 +37,7 @@ class Rackblog
     puts "** req: #{env["HTTP_ACCEPT"].split(';')[0].split(',')[0]} #{env['REQUEST_PATH'].inspect} decode: #{path.inspect} => #{path_parts} #{qparams}"
     headers = {'Content-Type' => 'text/html'}
 
-    if path == ''
+    if path == '/'
       html = index
     elsif path_parts[0] == 'post'
       if env['REQUEST_METHOD'] == 'GET'
@@ -94,7 +94,7 @@ class Rackblog
   end
 
   def my_path(path)
-    path.sub(/#{URI(@config[:url]).path}/,'')
+    path.sub(/^#{URI(@config[:url]).path}/, '/')
   end
 
   def auth_ok?(req)
