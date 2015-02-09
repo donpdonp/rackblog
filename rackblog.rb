@@ -76,7 +76,7 @@ class Rackblog
         if auth['error']
           html = auth['error_description']
         else
-          Rack::Utils.set_cookie_header!(headers, "rackblog", {:value => "",
+          Rack::Utils.set_cookie_header!(headers, "rackblog", {:value => @config[:apikey],
                                                                :path => URI(@config[:url]).path})
           return [302, headers.merge({"Location" => "#{@config[:url]}admin"}), []]
         end
@@ -106,7 +106,7 @@ class Rackblog
   end
 
   def auth_ok?(req)
-    req.cookies['rackblog']
+    @config[:apikey] && req.cookies['rackblog'] == @config[:apikey]
   end
 
   def tags(tag)
