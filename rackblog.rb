@@ -141,7 +141,8 @@ class Rackblog
   def decode(record)
     article = JSON.parse(record[1])
     article['time'] = Time.parse(article['time'])
-    [URI.join(@config[:url], record[0]), article]
+    full = @config[:url]+record[0].sub(/^\//,'')
+    [full, article]
   end
 
   def layout(template, params = {})
