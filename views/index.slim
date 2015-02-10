@@ -1,15 +1,16 @@
-.main
-ul.articles-list
-  - articles.each do |article|
-    li
-      .article-miniblock
-        .left
-          span.time
-            time datetime="#{article[1]['time']}" #{article[1]['time'].strftime("%Y-%b-%d")}
-          span.title
-            a href="#{article[0]}"
-              span.title #{article[1]['title']}
-        .right
-          - article[1]['tags'].each do |tag|
-            a.tag href="#{prefix}tag/#{tag}"
-              == tag
+.main.h-feed
+  .hidden.p-name donpark.org
+  ul.articles-list
+    - articles.each do |article|
+      li
+        .article-miniblock.h-entry
+          .left
+            span.time
+              time datetime="#{article[1]['time']}" #{article[1]['time'].strftime("%Y-%b-%d")}
+            span.title
+              a.u-url href="#{article[0]}"
+                span.title.p-name #{article[1]['title']}
+          .right
+            - article[1]['tags'].each do |tag|
+              a.tag href="#{prefix}tag/#{tag}"
+                == tag
