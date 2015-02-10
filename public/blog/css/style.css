@@ -11,6 +11,11 @@ a { color: black; }
   justify-content: space-between;
 }
 
+.d3bar {
+  position: absolute;
+  right: 20px;
+}
+
 .articles-list {
   list-style-type: none;
 }

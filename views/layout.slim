@@ -2,7 +2,14 @@ doctype html
 html
   head
     link rel='stylesheet' type='text/css' href="#{prefix}css/style.css"
+    script src="#{prefix}js/app.js"
+    script src="#{prefix}js/d3.v3.min.js" async="" onload="d3go()"
   body
+    .d3bar
+      svg id="three" width="200" height="20"
+        circle cx="10" cy="10" r="10" fill="none" stroke="blue"
+        circle cx="30" cy="10" r="10" fill="none" stroke="blue"
+        circle cx="50" cy="10" r="10" fill="none" stroke="blue"
     .navbar
       | #{slogan}
       a href="#{prefix}"

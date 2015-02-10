@@ -12,7 +12,7 @@ task :server do
     #use Rack::CommonLogger
     use Rack::ShowExceptions
     use Rack::Lint
-    use Rack::Static, :urls => ["/blog/css", "/img"], :root => "public"
+    use Rack::Static, :urls => ["/blog/css", "/blog/js"], :root => "public"
     run Rackblog.new(config[:blog])
   end
   Rack::Handler::Puma.run blog, config[:rack]
