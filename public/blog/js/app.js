@@ -5,4 +5,7 @@ function d3go() {
         .duration(7100)
         .ease('elastic')
         .attr("cx", function(who) {return Math.random() * 120; });
+  if (typeof d3ready !== 'undefined') {
+    d3ready()
+  }
 }

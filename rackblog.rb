@@ -208,7 +208,9 @@ class Rackblog
   end
 
   def load_tags(name='__root')
-    load_tag(name)
+    tag = load_tag(name)
+    tag[:children].map!{|tag| load_tags(tag)}
+    tag
   end
 
   def load_tag(name='__root')
