@@ -13,6 +13,15 @@
     == GitHub::Markdown.render(article['body'])
   .tags
     | tags:
-    - article['tags'].each do |tag|
-      a.tag href="#{prefix}tag/#{tag}"
-        == tag
+    ul
+      - article['tags'].each do |tag_path|
+        li
+          - tag_path.each_with_index do |tag, idx|
+              - if idx != 0 && idx != tag_path.size
+                span.arrowish &rarr;
+              - if idx != 0
+                a.tagtree href="#{prefix}tags?start=#{tag}"
+                  == tag
+              - else
+                a.tag href="#{prefix}tag/#{tag}"
+                  == tag

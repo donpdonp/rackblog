@@ -101,6 +101,7 @@ class Rackblog
         if edit && auth_ok?(req)
           html = layout('post', {article: article[1]})
         else
+          article[1]['tags'].map!{|t| tag_parents(t)}
           html = layout('article', {article: article[1]})
         end
       end
@@ -207,6 +208,17 @@ class Rackblog
     URI.encode(data['slug'][1,data['slug'].length-1])
   end
 
+  def tag_parents(name, parents = [])
+    puts "tag_parents #{name.inspect} #{parents.inspect}"
+    parents << name
+    tag = load_tag(name)
+    if tag && tag[:parent] != '__root'
+      tag_parents(tag[:parent], parents)
+    else
+      parents
+    end
+  end
+
   def load_tags(name)
     name = '__root' if name.nil?
     tag = load_tag(name)
@@ -245,5 +257,6 @@ class Rackblog
   def blank_tag(name, parent)
     {name: name, parent: parent, children: []}
   end
+
 end
 
