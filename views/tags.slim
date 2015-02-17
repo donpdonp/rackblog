@@ -1,0 +1,80 @@
+.tags
+  a href="/tags"
+    | tags
+
+  svg#graph style="width:100%; height: 500px"
+
+
+javascript:
+  var data = #{{tags.to_json}}
+  function d3ready() {
+    console.log('d3ready')
+    var size = {width: 280, height: 50};
+    var options = {nodeRadius: 5, maxLabelLength: 100}
+    var tree = d3.layout.tree()
+        .sort(null)
+        .size([size.height, size.width])
+        .children(function(d)
+        {
+            return (!d.children || d.children.length === 0) ? null : d.children;
+        });
+
+    var nodes = tree.nodes(data)
+        links = tree.links(nodes);
+
+    var layoutRoot = d3.select('#graph')
+                       .append("svg:g")
+                         .attr("class", "container")
+                         .attr("transform", "translate(" + options.maxLabelLength + ",0)");
+
+    // Edges between nodes as a <path class="link" />
+    var link = d3.svg.diagonal()
+       .projection(function(d)
+       {
+           return [d.y, d.x];
+       });
+
+    layoutRoot.selectAll("path.link")
+       .data(links)
+       .enter()
+       .append("svg:path")
+       .attr("class", "link")
+       .attr("d", link);
+
+
+    /*
+       Nodes as
+       <g class="node">
+           <circle class="node-dot" />
+           <text />
+       </g>
+    */
+    var nodeGroup = layoutRoot.selectAll("g.node")
+       .data(nodes)
+       .enter()
+       .append("svg:g")
+         .attr("class", "node")
+         .attr("transform", function(d)
+         {
+             return "translate(" + d.y + "," + d.x + ")";
+         });
+
+    nodeGroup.append("svg:circle")
+       .attr("class", "node-dot")
+       .attr("r", options.nodeRadius);
+
+    nodeGroup.append("svg:text")
+       .attr("text-anchor", function(d)
+       {
+           return d.children ? "end" : "start";
+       })
+       .attr("dx", function(d)
+       {
+           var gap = 2 * options.nodeRadius;
+           return d.children ? -gap : gap;
+       })
+       .attr("dy", 3)
+       .text(function(d){ return d.name })
+
+  }
+

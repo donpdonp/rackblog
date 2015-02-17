@@ -62,7 +62,7 @@ class Rackblog
       puts "Tag search #{path_parts[1]}"
       html = tags(path_parts[1])
     elsif path_parts[0] == 'tags'
-      html = tagviz(qparams)
+      html = tagviz(qparams, auth_ok?(req))
     elsif path_parts[0] == 'admin'
       puts "cookies: #{req.cookies.inspect}"
       if qparams['logout']
@@ -142,15 +142,15 @@ class Rackblog
     layout('index', {articles: articles})
   end
 
-  def tagviz(params)
-    if params['add']
+  def tagviz(params, auth_good)
+    if auth_good && params['add']
       if params['parent']
         add_tag(params['add'], params['parent'])
       else
         add_tag(params['add'])
       end
     end
-    tags = load_tags()
+    tags = load_tags(params['start'])
     puts "tagviz #{tags.inspect}"
     layout('tags', {tags: tags})
   end
@@ -207,7 +207,8 @@ class Rackblog
     URI.encode(data['slug'][1,data['slug'].length-1])
   end
 
-  def load_tags(name='__root')
+  def load_tags(name)
+    name = '__root' if name.nil?
     tag = load_tag(name)
     tag[:children].map!{|tag| load_tags(tag)}
     tag
