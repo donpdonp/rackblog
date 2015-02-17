@@ -17,8 +17,10 @@ class Rackblog
     Slim::Engine.set_options({pretty: true})
     @viewcache = {}
     lmdb = LMDB.new('db')
-    @db = lmdb.database
-    puts "Database connected with #{@db.stat[:entries]} posts on #{@config[:url]}"
+    @db = lmdb.database('blog', create:true)
+    @tags = lmdb.database('tags', create:true)
+    add_tag('__root')
+    puts "Database connected with #{@db.stat[:entries]} posts and #{@tags.stat[:entries]} tags on #{@config[:url]}"
   end
 
   def load_view(name)
@@ -59,6 +61,8 @@ class Rackblog
     elsif path_parts[0] == 'tag'
       puts "Tag search #{path_parts[1]}"
       html = tags(path_parts[1])
+    elsif path_parts[0] == 'tags'
+      html = tagviz(qparams)
     elsif path_parts[0] == 'admin'
       puts "cookies: #{req.cookies.inspect}"
       if qparams['logout']
@@ -138,9 +142,23 @@ class Rackblog
     layout('index', {articles: articles})
   end
 
+  def tagviz(params)
+    if params['add']
+      if params['parent']
+        add_tag(params['add'], params['parent'])
+      else
+        add_tag(params['add'])
+      end
+    end
+    tags = load_tags()
+    puts "tagviz #{tags.inspect}"
+    layout('tags', {tags: tags})
+  end
+
   def index(start = nil)
-    records = []
+    articles = []
     if @db.stat[:entries] > 0
+      records = []
       @db.cursor do |cursor|
         records << cursor.last if records.empty?
         loop do
@@ -189,5 +207,40 @@ class Rackblog
     URI.encode(data['slug'][1,data['slug'].length-1])
   end
 
+  def load_tags(name='__root')
+    load_tag(name)
+  end
+
+  def load_tag(name='__root')
+    puts "load_tag #{name.inspect}"
+    json = @tags[name]
+    json && JSON.parse(json, {symbolize_names:true})
+  end
+
+  def add_tag(name, parent='__root')
+    puts "add_tag #{name} to #{parent}"
+    tag = load_tag(name)
+    unless tag
+      parent = nil if name == '__root'
+      if parent
+        puts "parent check #{parent}"
+        parent_tag = load_tag(parent)
+        if parent_tag
+          parent_tag[:children] << name
+          puts "parent tag fixup #{parent_tag.inspect}"
+          @tags[parent] = parent_tag.to_json
+        else
+          puts "missing parent #{parent}!"
+          return
+        end
+      end
+      puts "creating tag #{name.inspect} parent #{parent.inspect}"
+      @tags[name] = blank_tag(name, parent).to_json
+    end
+  end
+
+  def blank_tag(name, parent)
+    {name: name, parent: parent, children: []}
+  end
 end
 
