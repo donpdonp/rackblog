@@ -8,13 +8,15 @@
 
 javascript:
   var data = #{{tags.to_json}}
+  var graph_width = $('#graph').width()
+  var graph_height = $('#graph').height()
+  var label_height = 20
   function d3ready() {
     console.log('d3ready')
-    var size = {width: 280, height: 50};
     var options = {nodeRadius: 5, maxLabelLength: 100}
     var tree = d3.layout.tree()
         .sort(null)
-        .size([size.height, size.width])
+        .size([graph_width, graph_height-(label_height*2)])
         .children(function(d)
         {
             return (!d.children || d.children.length === 0) ? null : d.children;
@@ -26,22 +28,18 @@ javascript:
     var layoutRoot = d3.select('#graph')
                        .append("svg:g")
                          .attr("class", "container")
-                         .attr("transform", "translate(" + options.maxLabelLength + ",0)");
+                         .attr("transform", 'translate(0,'+label_height+')');
 
     // Edges between nodes as a <path class="link" />
     var link = d3.svg.diagonal()
-       .projection(function(d)
-       {
-           return [d.y, d.x];
-       });
 
     layoutRoot.selectAll("path.link")
        .data(links)
        .enter()
-       .append("svg:path")
-       .attr("class", "link")
-       .attr("d", link);
-
+        .append("svg:path")
+         .attr("class", "link")
+         .attr('stroke', 'red')
+         .attr("d", link);
 
     /*
        Nodes as
@@ -57,7 +55,7 @@ javascript:
          .attr("class", "node")
          .attr("transform", function(d)
          {
-             return "translate(" + d.y + "," + d.x + ")";
+             return "translate(" + d.x + "," + d.y + ")";
          });
 
     nodeGroup.append("svg:circle")
@@ -75,7 +73,6 @@ javascript:
            return d.children ? -gap : gap;
        })
        .attr("dy", 3)
-       .text(function(d){ return d.name })
-
+       .text(function(d){ return d.name == "__root" ? "" : d.name })
   }
 
