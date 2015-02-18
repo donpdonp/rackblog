@@ -76,3 +76,7 @@ a { color: black; }
   width: 80em;
   height: 30em;
 }
+
+.tagtree #graph {
+  background: #eee;
+}
