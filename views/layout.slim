@@ -2,9 +2,11 @@ doctype html
 html
   head
     link rel='stylesheet' type='text/css' href="#{prefix}css/style.css"
+    link rel='stylesheet' type='text/css' href="#{prefix}css/prism.css"
     script src="#{prefix}js/app.js"
     script src="#{prefix}js/jquery-2.1.3.min.js"
     script src="#{prefix}js/d3.v3.min.js" async="" onload="d3go()"
+    script src="#{prefix}js/prism.js" async="" onload="Prism.highlightAll()"
   body
     .d3bar
       svg id="three" width="200" height="20"
