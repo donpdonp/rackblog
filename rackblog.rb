@@ -144,11 +144,16 @@ class Rackblog
   end
 
   def tagviz(params, auth_good)
-    if auth_good && params['add']
-      if params['parent']
-        add_tag(params['add'], params['parent'])
-      else
-        add_tag(params['add'])
+    if auth_good
+      if params['add']
+        if params['parent']
+          add_tag(params['add'], params['parent'])
+        else
+          add_tag(params['add'])
+        end
+      end
+      if params['del']
+        del_tag(params['del'])
       end
     end
     tags = load_tags(params['start'])
@@ -222,12 +227,11 @@ class Rackblog
   def load_tags(name)
     name = '__root' if name.nil?
     tag = load_tag(name)
-    tag[:children].map!{|tag| load_tags(tag)}
+    tag[:children].map!{|tag| load_tags(tag)}.compact! if tag
     tag
   end
 
   def load_tag(name='__root')
-    puts "load_tag #{name.inspect}"
     json = @tags[name]
     json && JSON.parse(json, {symbolize_names:true})
   end
@@ -235,7 +239,9 @@ class Rackblog
   def add_tag(name, parent='__root')
     puts "add_tag #{name} to #{parent}"
     tag = load_tag(name)
-    unless tag
+    if tag
+      puts "tag #{name} already exists #{tag.inspect}"
+    else
       parent = nil if name == '__root'
       if parent
         puts "parent check #{parent}"
@@ -251,6 +257,18 @@ class Rackblog
       end
       puts "creating tag #{name.inspect} parent #{parent.inspect}"
       @tags[name] = blank_tag(name, parent).to_json
+    end
+  end
+
+  def del_tag(name)
+    tag = load_tag(name)
+    if tag
+      parent = load_tag(tag[:parent])
+      if parent
+        parent[:children] -= [name]
+        @tags[parent[:name]] = parent.to_json
+      end
+      puts @tags.delete(name)
     end
   end
 
