@@ -80,7 +80,8 @@ class Rackblog
           html = auth['error_description']
         else
           Rack::Utils.set_cookie_header!(headers, "rackblog", {:value => @config[:apikey],
-                                                               :path => URI(@config[:url]).path})
+                                                               :path => URI(@config[:url]).path,
+                                                               :expires => Time.now+(60*60*24*365)})
           return [302, headers.merge({"Location" => "#{@config[:url]}admin"}), []]
         end
       else
