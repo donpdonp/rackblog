@@ -96,6 +96,11 @@ class Rackblog
         path = '/'+path_parts[0, path_parts.length-1].join('/')
         puts "edit new path #{path}"
       end
+      if path_parts[-1] == 'delete'
+        path = '/'+path_parts[0, path_parts.length-1].join('/')
+        @db.delete(path)
+        return [302, headers.merge({"Location" => "#{@config[:url]}"}), []]
+      end
       json = @db.get(path)
       if json
         article = decode([path, json])
