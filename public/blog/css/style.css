@@ -23,7 +23,6 @@ a { color: black; }
 
 .articles-list .article-miniblock {
   background: #eee;
-  width: 80%;
   margin: 0.5em 0;
   display: flex;
   justify-content: space-between;
@@ -39,7 +38,8 @@ a { color: black; }
 }
 
 .article {
-  width: 80%;
+  width: 90%;
+  margin: auto;
 }
 
 .article .time {
