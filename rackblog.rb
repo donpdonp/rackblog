@@ -146,7 +146,7 @@ class Rackblog
       end
       puts "Scanned #{count} articles for tag #{tag}. #{articles.size} found. #{"%0.2f"%(Time.now-start)} seconds."
     end
-    layout('index', {articles: articles})
+    layout('index', {articles: articles, name: @config[:name] })
   end
 
   def tagviz(params, auth_good)
@@ -181,7 +181,7 @@ class Rackblog
       end
       articles = records.map{|record| decode(record)}
     end
-    layout('index', {articles: articles})
+    layout('index', {articles: articles, name: @config[:name] })
   end
 
   def decode(record)
