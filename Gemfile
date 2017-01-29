@@ -6,4 +6,3 @@ gem 'slim'
 gem 'lmdb'
 gem 'puma'
 gem 'github-markdown'
-gem 'pg' #for conversion
