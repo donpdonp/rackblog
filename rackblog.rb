@@ -1,3 +1,4 @@
+require 'set'
 require 'json'
 require 'slim'
 require 'lmdb'
@@ -129,7 +130,8 @@ class Rackblog
   end
 
   def tags(tag)
-    articles = []
+   children = tag_children(tag)
+   articles = []
     count = @db.stat[:entries]
     if count > 0
       start = Time.now
@@ -138,7 +140,7 @@ class Rackblog
         record = cursor.last
         while record do
           article = decode(record)
-          if article[1]['tags'].include?(tag)
+          if article[1]['tags'].to_set.intersect?(children.to_set)
             articles << article
           end
           record = cursor.prev
@@ -228,6 +230,17 @@ class Rackblog
     else
       parents
     end
+  end
+
+  def tag_children(name)
+  # {:name=>"blockchain", :parent=>"cryptocurrency", :children=>[]}]}
+    children = []
+    tag = load_tag(name)
+    if tag
+     children = [name]
+     tag[:children].each{|child| children += tag_children(child) }
+    end
+    children
   end
 
   def load_tags(name)
