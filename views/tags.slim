@@ -57,23 +57,27 @@ javascript:
              return "translate(" + d.x + "," + d.y + ")";
          });
 
-    nodeGroup.append("svg:a")
+    nodeGroup
+      .append("svg:a")
          .attr("xlink:href", function(d){return "#{prefix}tags?start="+d.name})
       .append("svg:circle")
        .attr("class", "node-dot")
        .attr("r", options.nodeRadius);
 
-    nodeGroup.append("svg:a")
+    nodeGroup
+      .append("svg:a")
          .attr("xlink:href", function(d){return "#{prefix}tag/"+d.name})
       .append("svg:text")
        .attr("text-anchor", function(d)
        {
-           return d.children ? "end" : "start";
+           //return d.children ? "end" : "start";
+           return "end"
        })
        .attr("dx", function(d)
        {
            var gap = 2 * options.nodeRadius;
-           return d.children ? -gap : gap;
+           //return d.children ? -gap : gap;
+           return -gap
        })
        .attr("dy", 3)
        .text(function(d){ return d.name == "__root" ? "" : d.name })
