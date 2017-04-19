@@ -3,7 +3,7 @@ task :default => [:server]
 task :server do
   require 'bundler/setup'
   require 'rack/handler/puma'
-  require_relative 'rackblog'
+  require_relative 'lib/rackblog'
 
   config = load_config
   $0 = "rackblog #{config[:blog][:name]}"
