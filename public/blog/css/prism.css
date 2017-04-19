@@ -17,6 +17,7 @@ pre[class*="language-"] {
 	word-break: normal;
 	word-wrap: normal;
 	line-height: 50%;
+	font-size: 90%;
 
 	-moz-tab-size: 4;
 	-o-tab-size: 4;
