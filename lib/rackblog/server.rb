@@ -4,6 +4,7 @@ require 'slim'
 require 'lmdb'
 require 'httparty'
 require 'github/markdown'
+require 'atom/feed'
 
 module Rackblog
   class Server
@@ -46,7 +47,7 @@ module Rackblog
       headers = {'Content-Type' => 'text/html'}
 
       if path == '/'
-        html = index
+        html = index(req.media_type)
       elsif path_parts[0] == 'post'
         if auth_ok?(req)
           if env['REQUEST_METHOD'] == 'GET'
@@ -170,7 +171,7 @@ module Rackblog
       layout('tags', {tags: tags})
     end
 
-    def index(start = nil)
+    def index(mime)
       articles = []
       if @db.stat[:entries] > 0
         records = []
@@ -182,16 +183,30 @@ module Rackblog
             records << next_art
           end
         end
-        articles = records.map{|record| decode(record)}
+        articles = records.map{|record| decode(record, mime)}
       end
-      layout('index', {articles: articles, name: @config[:name] })
+      if mime == "text/plain"
+        layout('index', {articles: articles, name: @config[:name] })
+      elsif mime == "application/atom+xml"
+        feed = Atom::Feed.new
+        articles.each {|a| feed.entries << a}
+        feed.to_s
+      end
     end
 
-    def decode(record)
+    def decode(record, mime)
       article = JSON.parse(record[1])
-      article['time'] = Time.parse(article['time'])
-      full = @config[:url]+record[0].sub(/^\//,'')
-      [full, article]
+      if mime == "text/plain"
+        article['time'] = Time.parse(article['time'])
+        full = @config[:url]+record[0].sub(/^\//,'')
+        [full, article]
+      elsif mime == "application/atom+xml"
+        e = Atom::Entry.new
+        e.title = article['title']
+        e.content = article['body']
+        e.content.type = "html"
+        e
+      end
     end
 
     def layout(template_name, params = {})
