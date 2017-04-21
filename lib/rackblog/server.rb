@@ -194,7 +194,7 @@ module Rackblog
       end
     end
 
-    def decode(record, mime)
+    def decode(record, mime = "text/plain")
       article = JSON.parse(record[1])
       if mime == "text/plain"
         article['time'] = Time.parse(article['time'])
