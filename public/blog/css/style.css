@@ -37,6 +37,10 @@ a { color: black; }
   font-size: 120%;
 }
 
+.articles-list .left {
+  display: flex;
+}
+
 .article {
   width: 90%;
   margin: auto;
