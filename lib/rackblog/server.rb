@@ -108,10 +108,10 @@ module Rackblog
         if json
           article = decode([path, json])
           if edit && auth_ok?(req)
-            html = layout('post', {article: article[1]})
+            html = layout('post', {article: article})
           else
-            article[1]['tags'].map!{|t| @tags.tag_parents(t)}
-            html = layout('article', {article: article[1]})
+            article['tags'].map!{|t| @tags.tag_parents(t)}
+            html = layout('article', {article: article})
           end
         end
       end
@@ -142,7 +142,7 @@ module Rackblog
           record = cursor.last
           while record do
             article = decode(record)
-            if article[1]['tags'].to_set.intersect?(children.to_set)
+            if article['tags'].to_set.intersect?(children.to_set)
               articles << article
             end
             record = cursor.prev
@@ -183,30 +183,38 @@ module Rackblog
             records << next_art
           end
         end
-        articles = records.map{|record| decode(record, mime)}
+        articles = records.map{|record| decode(record)}
       end
       if mime == "text/plain"
-        layout('index', {articles: articles, name: @config[:name] })
+        decode_list_html(articles)
       elsif mime == "application/atom+xml"
-        feed = Atom::Feed.new
-        articles.each {|a| feed.entries << a}
-        feed.to_s
+        decode_list_atom(articles)
       end
     end
 
-    def decode(record, mime = "text/plain")
+    def decode(record)
       article = JSON.parse(record[1])
-      if mime == "text/plain"
-        article['time'] = Time.parse(article['time'])
-        full = @config[:url]+record[0].sub(/^\//,'')
-        [full, article]
-      elsif mime == "application/atom+xml"
-        e = Atom::Entry.new
-        e.title = article['title']
-        e.content = article['body']
-        e.content.type = "html"
-        e
+      # convert date str into ruby date object
+      article['time'] = Time.parse(article['time'])
+      # url is determined at runtime
+      article['url'] = @config[:url]+record[0].sub(/^\//,'')
+      article
+    end
+
+    def decode_list_html(articles)
+      layout('index', {articles: articles, name: @config[:name] })
+    end
+
+    def decode_list_atom(articles)
+      feed = Atom::Feed.new
+      articles.each do |article|
+        post = Atom::Entry.new
+        post.title = article['title']
+        post.content = article['body']
+        post.content.type = "html"
+        feed.entries << post
       end
+      feed.to_s
     end
 
     def layout(template_name, params = {})

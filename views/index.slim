@@ -6,11 +6,11 @@
         .article-miniblock.h-entry
           .left
             span.time
-              time.dt-published datetime="#{article[1]['time']}" #{article[1]['time'].strftime("%Y-%b-%d")}
+              time.dt-published datetime="#{article['time']}" #{article['time'].strftime("%Y-%b-%d")}
             span.title
-              a.u-url href="#{article[0]}"
-                span.title.p-name #{article[1]['title']}
+              a.u-url href="#{article['url']}"
+                span.title.p-name #{article['title']}
           .right
-            - article[1]['tags'].each do |tag|
+            - article['tags'].each do |tag|
               a.tag href="#{prefix}tag/#{tag}"
                 == tag
