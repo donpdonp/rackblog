@@ -5,10 +5,10 @@
         == article['title']
       .time
         time.dt-published datetime="#{article['time']}" #{article['time'].strftime("%Y-%b-%d")}
-    .right
-      .author.p-author Don Park
+    .right.p-author.h-card
+      a.p-name href="https://donp.org" Don Park
       .pic
-        img src="https://en.gravatar.com/userimage/3240117/2383955e328bce58cf2f8c5f40c10ecc.jpg?size=50"
+        img.u-photo src="https://en.gravatar.com/userimage/3240117/2383955e328bce58cf2f8c5f40c10ecc.jpg?size=50"
   .body.e-content
     == GitHub::Markdown.render(article['body'])
   .tags
