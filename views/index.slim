@@ -6,7 +6,7 @@
         .article-miniblock.h-entry
           .left
             span.time
-              time.dt-published datetime="#{article['time']}" #{article['time'].strftime("%Y-%b-%d")}
+              time.dt-published datetime="#{article['time']}" #{article['time'].strftime("%Y %b %d")}
             span.title
               a.u-url href="#{article['url']}"
                 span.title.p-name #{article['title']}
