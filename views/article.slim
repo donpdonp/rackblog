@@ -12,7 +12,8 @@
   .body.e-content
     == GitHub::Markdown.render(article['body'])
   .tags
-    | tags:
+    div
+      span tags:
     ul
       - article['tags'].each do |tag_path|
         li

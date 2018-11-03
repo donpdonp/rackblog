@@ -69,6 +69,13 @@ a { color: black; }
   font-size: 80%;
 }
 
+.article .tags {
+  display: flex;
+}
+
+.article .tags span {
+}
+
 .article .tags ul {
   display: inline-block;
 }
