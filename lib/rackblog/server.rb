@@ -43,11 +43,12 @@ module Rackblog
       path = my_path(URI.decode(env['REQUEST_PATH']))
       path_parts = path.split('/'); path_parts.shift
       qparams = query_decode(env["QUERY_STRING"])
-      puts "** req: #{env["HTTP_ACCEPT"].split(';')[0].split(',')[0]} #{env['REQUEST_PATH'].inspect} decode: #{path.inspect} => #{path_parts} #{qparams}"
+      mime_accept = env["HTTP_ACCEPT"].split(';')[0].split(',')[0]
+      puts "** req: #{mime_accept} #{env['REQUEST_PATH'].inspect} decode: #{path.inspect} => #{path_parts} #{qparams}"
       headers = {'Content-Type' => 'text/html'}
 
       if path == '/'
-        html = index(req.media_type)
+        html = index(mime_accept)
       elsif path_parts[0] == 'post'
         if auth_ok?(req)
           if env['REQUEST_METHOD'] == 'GET'
@@ -172,6 +173,7 @@ module Rackblog
     end
 
     def index(mime)
+puts "index #{mime}"
       articles = []
       if @db.stat[:entries] > 0
         records = []
@@ -185,7 +187,7 @@ module Rackblog
         end
         articles = records.map{|record| decode(record)}
       end
-      if mime == "text/plain"
+      if mime == "text/html"
         decode_list_html(articles)
       elsif mime == "application/atom+xml"
         decode_list_atom(articles)
