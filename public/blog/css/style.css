@@ -5,12 +5,12 @@ a { color: black; }
 .content {
   font-family: 'Montserrat', Times, serif;
   font-size: 20px;
-  padding: 0 1em;
+  padding: 0.5em 0;
 }
 
 .navbar {
   font-family: 'Raleway', Times, serif;
-  font-size: 24px;
+  font-size: 22px;
   display: flex;
   justify-content: space-between;
   width: 95%;
@@ -34,6 +34,7 @@ a { color: black; }
 
 .articles-list {
   list-style-type: none;
+  padding: 0 0.5em;
 }
 
 .articles-list .article-miniblock {
