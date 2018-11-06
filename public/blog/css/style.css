@@ -3,17 +3,32 @@ a { color: black; }
 .hidden { display: none;}
 
 .content {
-  padding: 1em;
+  font-family: 'Montserrat', Times, serif;
+  font-size: 20px;
+  padding: 0 1em;
 }
 
 .navbar {
+  font-family: 'Raleway', Times, serif;
+  font-size: 26px;
   display: flex;
   justify-content: space-between;
+  width: 95%;
+  margin: auto;
+}
+.navbar a {
+  text-decoration: none;
+}
+
+.navbar .tagtree {
+  font-family: Times, serif;
+  font-size: 20px;
 }
 
 .d3bar {
   position: absolute;
   right: 20px;
+  top: 15px;
   z-index: -3;
 }
 
@@ -33,6 +48,9 @@ a { color: black; }
   width: 7em;
 }
 
+.articles-list .partmonth {
+}
+
 .articles-list .title {
   font-size: 120%;
 }
@@ -44,6 +62,10 @@ a { color: black; }
 .article {
   width: 90%;
   margin: auto;
+}
+
+.article .body {
+  line-height: 1.5;
 }
 
 .article .time {
@@ -84,7 +106,9 @@ a { color: black; }
 }
 
 .article-post textarea {
-  width: 80em;
+  font-family: 'Montserrat', Times, serif;
+  font-size: 20px;
+  width: 95%;
   height: 30em;
 }
 
