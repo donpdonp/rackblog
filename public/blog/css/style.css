@@ -10,7 +10,7 @@ a { color: black; }
 
 .navbar {
   font-family: 'Raleway', Times, serif;
-  font-size: 26px;
+  font-size: 24px;
   display: flex;
   justify-content: space-between;
   width: 95%;
