@@ -115,3 +115,7 @@ a { color: black; }
 .tagtree #graph {
   background: #eee;
 }
+
+code {
+  font-size: 90%;
+}
