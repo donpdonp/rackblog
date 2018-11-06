@@ -52,7 +52,7 @@ module Rackblog
       elsif path_parts[0] == 'post'
         if auth_ok?(req)
           if env['REQUEST_METHOD'] == 'GET'
-            html = layout('post')
+            html = layout('edit')
           elsif env['REQUEST_METHOD'] == 'POST'
             slug = article_save(req.params)
             post_url = "#{env['rack.url_scheme']}://#{env['HTTP_HOST']}#{URI(@config[:url]).path}#{slug}"
@@ -109,7 +109,7 @@ module Rackblog
         if json
           article = decode([path, json])
           if edit && auth_ok?(req)
-            html = layout('post', {article: article})
+            html = layout('edit', {article: article})
           else
             article['tags'].map!{|t| @tags.tag_parents(t)}
             html = layout('article', {article: article})
