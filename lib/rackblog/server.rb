@@ -38,6 +38,7 @@ module Rackblog
       @viewcache[name][:template]
     end
 
+## Routing
     def call(env)
       req = Rack::Request.new(env)
       path = my_path(URI.decode(env['REQUEST_PATH']))
@@ -45,14 +46,16 @@ module Rackblog
       qparams = query_decode(env["QUERY_STRING"])
       mime_accept = env["HTTP_ACCEPT"].split(';')[0].split(',')[0]
       puts "** req: #{mime_accept} #{env['REQUEST_PATH'].inspect} decode: #{path.inspect} => #{path_parts} #{qparams}"
+      status = 200
       headers = {'Content-Type' => 'text/html'}
+      body_parts = []
 
       if path == '/'
-        html = index(mime_accept)
+        body_parts.push(index(mime_accept))
       elsif path_parts[0] == 'post'
         if auth_ok?(req)
           if env['REQUEST_METHOD'] == 'GET'
-            html = layout('edit')
+            body_parts.push(layout('edit'))
           elsif env['REQUEST_METHOD'] == 'POST'
             slug = article_save(req.params)
             post_url = "#{env['rack.url_scheme']}://#{env['HTTP_HOST']}#{URI(@config[:url]).path}#{slug}"
@@ -64,9 +67,9 @@ module Rackblog
         end
       elsif path_parts[0] == 'tag'
         puts "Tag search #{path_parts[1]}"
-        html = tags(path_parts[1])
+        body_parts.push(tags(path_parts[1]))
       elsif path_parts[0] == 'tags'
-        html = tagviz(qparams, auth_ok?(req))
+        body_parts.push(tagviz(qparams, auth_ok?(req)))
       elsif path_parts[0] == 'admin'
         puts "cookies: #{req.cookies.inspect}"
         if qparams['logout']
@@ -74,7 +77,7 @@ module Rackblog
                                                                   :path => URI(@config[:url]).path})
           return [302, headers.merge({"Location" => "#{@config[:url]}"}), []]
         elsif auth_ok?(req)
-          html = layout('admin')
+          body_parts.push(layout('admin'))
         elsif qparams['token']
           resp = HTTParty.post 'https://indieauth.com/auth',
                                    {query: {code: qparams['token'],
@@ -109,20 +112,22 @@ module Rackblog
         if json
           article = decode([path, json])
           if edit && auth_ok?(req)
-            html = layout('edit', {article: article})
+            body_parts.push(layout('edit', {article: article}))
           else
             article['tags'].map!{|t| @tags.tag_parents(t)}
-            html = layout('article', {article: article})
+            body_parts.push(layout('article', {article: article}))
           end
         end
       end
 
-      if html
-        ['200', headers, [html]]
-      else
-        ['404', headers, ['Page not found']]
+      if body_parts.empty?
+        status = 404
+        body_parts.push("Page not found for #{path}")
       end
+
+      [status, headers, body_parts]
     end
+## End Routing
 
     def my_path(path)
       path.sub(/^#{URI(@config[:url]).path}/, '/')
@@ -173,7 +178,6 @@ module Rackblog
     end
 
     def index(mime)
-puts "index #{mime}"
       articles = []
       if @db.stat[:entries] > 0
         records = []
