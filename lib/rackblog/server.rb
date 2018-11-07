@@ -144,15 +144,13 @@ module Rackblog
       if req.get?
       end
       if req.post?
-        #
-        puts "lookingup target #{req.form["target"]}"
         path = URI(req.form["target"]).path
         article_path = Util.my_path(path)
         json = @db.get(article_path)
         if json
           puts "webmention article found #{article_path}"
           article = decode([req.path, json])
-          mentions = JSON.parse(@mentions[article_path] || [].to_json)
+          mentions = this.mentions(article_path)
           source = req.form["source"]
           if mentions.include?(source)
             puts "dupe source ignored: #{source}"
@@ -168,6 +166,10 @@ module Rackblog
         end
       end
       [status, headers, body_parts]
+    end
+
+    def mentions(slug)
+      JSON.parse(@mentions[slug] || [].to_json)
     end
 
     def auth_ok?(req)
