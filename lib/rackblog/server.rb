@@ -146,7 +146,7 @@ module Rackblog
         #req.form["source"]
         puts "lookingup target #{req.form["target"]}"
         path = URI(req.form["target"]).path
-        article_path = my_path(path)
+        article_path = Util.my_path(path)
         json = @db.get(article_path)
         if json
           puts "webmention article found #{article_path}"
