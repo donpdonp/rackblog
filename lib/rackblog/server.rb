@@ -145,6 +145,7 @@ module Rackblog
       if req.post?
         status = 202
         body_parts.push('Accepted')
+        puts "webmention body #{req.body}"
       end
       [status, headers, body_parts]
     end
@@ -276,6 +277,7 @@ module Rackblog
         form: rack_req.params,
         cookies: rack_req.cookies
       }
+      @data[:body] = rack_req.body.read if post?
     end
 
     def get?
@@ -314,6 +316,10 @@ module Rackblog
 
     def cookies
       @data[:cookies]
+    end
+
+    def body
+      @data[:body]
     end
 
     def my_path(path)
