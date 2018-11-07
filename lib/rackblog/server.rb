@@ -154,8 +154,12 @@ module Rackblog
           article = decode([req.path, json])
           mentions = JSON.parse(@mentions[article_path] || [].to_json)
           source = req.form["source"]
-          mentions.push(source)
-          puts "mentions #{mentions.to_json}"
+          if mentions.include?(source)
+            puts "dupe source ignored: #{source}"
+          else
+            mentions.push(source)
+          end
+          puts "mentions: #{mentions.to_json}"
           @mentions[article_path] = mentions.to_json
           status = 202
           body_parts.push('Accepted')
