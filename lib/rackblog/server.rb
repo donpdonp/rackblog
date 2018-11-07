@@ -150,7 +150,7 @@ module Rackblog
         if json
           puts "webmention article found #{article_path}"
           article = decode([req.path, json])
-          mentions = this.mentions(article_path)
+          mentions = self.mentions(article_path)
           source = req.form["source"]
           if mentions.include?(source)
             puts "dupe source ignored: #{source}"
