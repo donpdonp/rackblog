@@ -296,7 +296,7 @@ module Rackblog
         path: path,
         params: Util.query_decode(env["QUERY_STRING"]),
         verb: env['REQUEST_METHOD'],
-        mime_accept: env["HTTP_ACCEPT"].split(';')[0].split(',')[0],
+        mime_accept: env["HTTP_ACCEPT"] && env["HTTP_ACCEPT"].split(';')[0].split(',')[0],
         form: rack_req.params,
         cookies: rack_req.cookies
       }
