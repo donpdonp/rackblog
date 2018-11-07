@@ -26,3 +26,9 @@
               - else
                 a.tag href="#{prefix}tag/#{tag}"
                   == tag
+  .mentions
+    ul
+      - article['mentions'].each_with_index do |mention, idx|
+        li
+          | #{mention}
+

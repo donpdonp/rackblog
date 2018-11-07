@@ -97,6 +97,7 @@ module Rackblog
             body_parts.push(layout('edit', {article: article}))
           else
             article['tags'].map!{|t| @tags.tag_parents(t)}
+            article['mentions'] = self.mentions(req.path)
             body_parts.push(layout('article', {article: article}))
           end
         end
