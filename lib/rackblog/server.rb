@@ -145,7 +145,8 @@ module Rackblog
       if req.post?
         #req.form["source"]
         puts "lookingup target #{req.form["target"]}"
-        article_path = URI(req.form["target"]).path
+        path = URI(req.form["target"]).path
+        article_path = my_path(path)
         json = @db.get(article_path)
         if json
           puts "webmention article found #{article_path}"
@@ -277,7 +278,7 @@ module Rackblog
   class Request
     def initialize(env)
       rack_req = Rack::Request.new(env)
-      path = my_path(URI.decode(env['REQUEST_PATH']))
+      path = Util.my_path(URI.decode(env['REQUEST_PATH']))
       @data = {
         path: path,
         params: Util.query_decode(env["QUERY_STRING"]),
@@ -329,16 +330,15 @@ module Rackblog
     def body
       @data[:body]
     end
-
-    def my_path(path)
-      Util.path_prefix_remove(Rackblog::config[:url], path)
-    end
-
   end
 
   class Util
     def self.query_decode(query)
       URI.decode_www_form(query).reduce({}){|h, v| h[v[0]]=v[1]; h}
+    end
+
+    def self.my_path(path)
+      Util.path_prefix_remove(Rackblog::config[:url], path)
     end
 
     def self.path_prefix_remove(prefix_url, path)
