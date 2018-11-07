@@ -140,6 +140,12 @@ module Rackblog
     end
 
     def webmention(req, status, headers, body_parts)
+      if req.get?
+      end
+      if req.post?
+        status = 202
+        body_parts.push('Accepted')
+      end
       [status, headers, body_parts]
     end
 
