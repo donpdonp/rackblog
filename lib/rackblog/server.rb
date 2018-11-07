@@ -144,6 +144,7 @@ module Rackblog
       end
       if req.post?
         #req.form["source"]
+        puts "lookingup target #{req.form["target"]}"
         article_path = URI(req.form["target"]).path
         json = @db.get(article_path)
         if json
