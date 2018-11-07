@@ -15,7 +15,7 @@ module Rackblog
     #  "time"=>"2015-02-08T17:04:23-08:00"}
 
     def initialize(config)
-      @config = config
+      Rackblog::config = @config = config
       @config[:url]+= "/" unless @config[:url][-1] == '/'
       Slim::Engine.set_options({pretty: true})
       @viewcache = {}
@@ -40,24 +40,23 @@ module Rackblog
 
 ## Routing
     def call(env)
-      req = Rack::Request.new(env)
-      path = my_path(URI.decode(env['REQUEST_PATH']))
-      path_parts = path.split('/'); path_parts.shift
-      qparams = query_decode(env["QUERY_STRING"])
-      mime_accept = env["HTTP_ACCEPT"].split(';')[0].split(',')[0]
-      puts "** req: #{mime_accept} #{env['REQUEST_PATH'].inspect} decode: #{path.inspect} => #{path_parts} #{qparams}"
+      req = Request.new(env)
+      puts "** req: #{req.verb} #{req.mime_accept} #{req.path.inspect} "+
+           "=> parts #{req.path_parts} params #{req.qparams}"
+
+      # response
       status = 200
       headers = {'Content-Type' => 'text/html'}
       body_parts = []
 
-      if path == '/'
-        body_parts.push(index(mime_accept))
-      elsif path_parts[0] == 'post'
+      if req.path_parts.empty?
+        body_parts.push(index(req.mime_accept))
+      elsif req.path_parts[0] == 'post'
         if auth_ok?(req)
-          if env['REQUEST_METHOD'] == 'GET'
+          if req.verb == 'GET'
             body_parts.push(layout('edit'))
-          elsif env['REQUEST_METHOD'] == 'POST'
-            slug = article_save(req.params)
+          elsif req.verb == 'POST'
+            slug = article_save(req.form)
             post_url = "#{env['rack.url_scheme']}://#{env['HTTP_HOST']}#{URI(@config[:url]).path}#{slug}"
             puts "Redirect: #{post_url}"
             return [302, headers.merge({"Location" => post_url}), []]
@@ -65,26 +64,26 @@ module Rackblog
         else
           return [302, headers.merge({"Location" => "#{@config[:url]}"}), []]
         end
-      elsif path_parts[0] == 'tag'
-        puts "Tag search #{path_parts[1]}"
-        body_parts.push(tags(path_parts[1]))
-      elsif path_parts[0] == 'tags'
-        body_parts.push(tagviz(qparams, auth_ok?(req)))
-      elsif path_parts[0] == 'admin'
+      elsif req.path_parts[0] == 'tag'
+        puts "Tag search #{req.path_parts[1]}"
+        body_parts.push(tags(req.path_parts[1]))
+      elsif req.path_parts[0] == 'tags'
+        body_parts.push(tagviz(req.qparams, auth_ok?(req)))
+      elsif req.path_parts[0] == 'admin'
         puts "cookies: #{req.cookies.inspect}"
-        if qparams['logout']
+        if req.qparams['logout']
           Rack::Utils.delete_cookie_header!(headers, "rackblog", {:value => "",
                                                                   :path => URI(@config[:url]).path})
           return [302, headers.merge({"Location" => "#{@config[:url]}"}), []]
         elsif auth_ok?(req)
           body_parts.push(layout('admin'))
-        elsif qparams['token']
-          resp = HTTParty.post 'https://indieauth.com/auth',
-                                   {query: {code: qparams['token'],
+        elsif req.qparams['token']
+          auth_resp = HTTParty.post 'https://indieauth.com/auth',
+                                   {query: {code: req.qparams['token'],
                                             redirect_uri: "#{@config[:url]}admin"}}
-          auth = query_decode(resp.parsed_response)
+          auth = Util.query_decode(auth_resp.parsed_response)
           if auth['error']
-            html = auth['error_description']
+            body_parts.push(auth['error_description'])
           else
             Rack::Utils.set_cookie_header!(headers, "rackblog", {:value => @config[:apikey],
                                                                  :path => URI(@config[:url]).path,
@@ -98,19 +97,22 @@ module Rackblog
           return [302, headers.merge({"Location" => auth_url}), []]
         end
       else
-        edit = path_parts[-1] == 'edit'
+        article_path = req.path
+        last_part = req.path_parts[-1]
+        edit = last_part == 'edit'
         if edit
-          path = '/'+path_parts[0, path_parts.length-1].join('/')
-          puts "edit new path #{path}"
+          article_path = '/'+req.path_parts[0, req.path_parts.length-1].join('/')
+          puts "edit article path #{article_path}"
         end
-        if path_parts[-1] == 'delete' && auth_ok?(req)
-          path = '/'+path_parts[0, path_parts.length-1].join('/')
-          @db.delete(path)
+        if last_part == 'delete' && auth_ok?(req)
+          article_path = '/'+req.path_parts[0, req.path_parts.length-1].join('/')
+          puts "delete article path #{article_path}"
+          @db.delete(article_path)
           return [302, headers.merge({"Location" => "#{@config[:url]}"}), []]
         end
-        json = @db.get(path)
+        json = @db.get(article_path)
         if json
-          article = decode([path, json])
+          article = decode([req.path, json])
           if edit && auth_ok?(req)
             body_parts.push(layout('edit', {article: article}))
           else
@@ -128,10 +130,6 @@ module Rackblog
       [status, headers, body_parts]
     end
 ## End Routing
-
-    def my_path(path)
-      path.sub(/^#{URI(@config[:url]).path}/, '/')
-    end
 
     def auth_ok?(req)
       @config[:apikey] && req.cookies['rackblog'] == @config[:apikey]
@@ -236,10 +234,6 @@ module Rackblog
       str.gsub(' ','-').downcase
     end
 
-    def query_decode(query)
-      URI.decode_www_form(query).reduce({}){|h, v| h[v[0]]=v[1]; h}
-    end
-
     def article_save(data)
       now = Time.now
       data['time'] ||= now.iso8601
@@ -249,6 +243,65 @@ module Rackblog
       puts "Saving Key #{data['slug'].inspect} => #{data.to_json}"
       @db[data['slug']] = data.to_json
       URI.encode(data['slug'][1,data['slug'].length-1])
+    end
+  end
+
+  class Request
+    def initialize(env)
+      rack_req = Rack::Request.new(env)
+      path = my_path(URI.decode(env['REQUEST_PATH']))
+      @data = {
+        path: path,
+        qparams: Util.query_decode(env["QUERY_STRING"]),
+        verb: env['REQUEST_METHOD'],
+        mime_accept: env["HTTP_ACCEPT"].split(';')[0].split(',')[0],
+        form: rack_req.params,
+        cookies: rack_req.cookies
+      }
+    end
+
+    def path
+      @data[:path]
+    end
+
+    def path_parts
+      parts = path.split('/')
+      parts.shift
+      parts
+    end
+
+    def qparams
+      @data[:qparams]
+    end
+
+    def mime_accept
+      @data[:mime_accept]
+    end
+
+    def verb
+      @data[:verb]
+    end
+
+    def form
+      @data[:form]
+    end
+
+    def cookies
+      @data[:cookies]
+    end
+
+    def my_path(path)
+      Util.path_prefix_remove(Rackblog::config[:url], path)
+    end
+
+  end
+
+  class Util
+    def self.query_decode(query)
+      URI.decode_www_form(query).reduce({}){|h, v| h[v[0]]=v[1]; h}
+    end
+    def self.path_prefix_remove(prefix_url, path)
+      path.sub(/^#{URI(prefix_url).path}/, '/')
     end
   end
 end
