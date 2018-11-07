@@ -143,9 +143,17 @@ module Rackblog
       if req.get?
       end
       if req.post?
-        status = 202
-        body_parts.push('Accepted')
-        puts "webmention body #{req.form}"
+        #req.form["source"]
+        article_path = URI(req.form["target"]).path
+        json = @db.get(article_path)
+        if json
+          puts "webmention article found #{article_path}"
+          article = decode([req.path, json])
+          status = 202
+          body_parts.push('Accepted')
+        else
+          status = 400
+        end
       end
       [status, headers, body_parts]
     end
