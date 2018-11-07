@@ -72,32 +72,7 @@ module Rackblog
       elsif req.path_parts[0] == 'tags'
         body_parts.push(tagviz(req.params, auth_ok?(req)))
       elsif req.path_parts[0] == 'admin'
-        puts "cookies: #{req.cookies.inspect}"
-        if req.params['logout']
-          Rack::Utils.delete_cookie_header!(headers, "rackblog", {:value => "",
-                                                                  :path => URI(@config[:url]).path})
-          return [302, headers.merge({"Location" => "#{@config[:url]}"}), []]
-        elsif auth_ok?(req)
-          body_parts.push(layout('admin'))
-        elsif req.params['token']
-          auth_resp = HTTParty.post 'https://indieauth.com/auth',
-                                   {query: {code: req.params['token'],
-                                            redirect_uri: "#{@config[:url]}admin"}}
-          auth = Util.query_decode(auth_resp.parsed_response)
-          if auth['error']
-            body_parts.push(auth['error_description'])
-          else
-            Rack::Utils.set_cookie_header!(headers, "rackblog", {:value => @config[:apikey],
-                                                                 :path => URI(@config[:url]).path,
-                                                                 :expires => Time.now+(60*60*24*365)})
-            return [302, headers.merge({"Location" => "#{@config[:url]}admin"}), []]
-          end
-        else
-          qstr = URI.encode_www_form({:me=>@config[:indieauth],
-                                      :redirect_uri=>"#{@config[:url]}admin"})
-          auth_url = "https://indieauth.com/auth?#{qstr}"
-          return [302, headers.merge({"Location" => auth_url}), []]
-        end
+        status, headers, body_parts = admin(req, status, headers, body_parts)
       else
         article_path = req.path
         last_part = req.path_parts[-1]
@@ -132,6 +107,35 @@ module Rackblog
       [status, headers, body_parts]
     end
 ## End Routing
+
+    def admin(req, status, headers, body_parts)
+      if req.params['logout']
+        Rack::Utils.delete_cookie_header!(headers, "rackblog", {:value => "",
+                                                                :path => URI(@config[:url]).path})
+        return [302, headers.merge({"Location" => "#{@config[:url]}"}), []]
+      elsif auth_ok?(req)
+        body_parts.push(layout('admin'))
+      elsif req.params['token']
+        auth_resp = HTTParty.post 'https://indieauth.com/auth',
+                                 {query: {code: req.params['token'],
+                                          redirect_uri: "#{@config[:url]}admin"}}
+        auth = Util.query_decode(auth_resp.parsed_response)
+        if auth['error']
+          body_parts.push(auth['error_description'])
+        else
+          Rack::Utils.set_cookie_header!(headers, "rackblog", {:value => @config[:apikey],
+                                                               :path => URI(@config[:url]).path,
+                                                               :expires => Time.now+(60*60*24*365)})
+          return [302, headers.merge({"Location" => "#{@config[:url]}admin"}), []]
+        end
+      else
+        qstr = URI.encode_www_form({:me=>@config[:indieauth],
+                                    :redirect_uri=>"#{@config[:url]}admin"})
+        auth_url = "https://indieauth.com/auth?#{qstr}"
+        return [302, headers.merge({"Location" => auth_url}), []]
+      end
+      [status, headers, body_parts]
+    end
 
     def auth_ok?(req)
       @config[:apikey] && req.cookies['rackblog'] == @config[:apikey]
