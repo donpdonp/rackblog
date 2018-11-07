@@ -73,6 +73,8 @@ module Rackblog
         body_parts.push(tagviz(req.params, auth_ok?(req)))
       elsif req.path_parts[0] == 'admin'
         status, headers, body_parts = admin(req, status, headers, body_parts)
+      elsif req.path_parts[0] == 'webmention'
+        status, headers, body_parts = webmention(req, status, headers, body_parts)
       else
         article_path = req.path
         last_part = req.path_parts[-1]
@@ -101,7 +103,7 @@ module Rackblog
 
       if body_parts.empty?
         status = 404
-        body_parts.push("Page not found for #{path}")
+        body_parts.push("Page not found for #{req.path}")
       end
 
       [status, headers, body_parts]
@@ -134,6 +136,10 @@ module Rackblog
         auth_url = "https://indieauth.com/auth?#{qstr}"
         return [302, headers.merge({"Location" => auth_url}), []]
       end
+      [status, headers, body_parts]
+    end
+
+    def webmention(req, status, headers, body_parts)
       [status, headers, body_parts]
     end
 
