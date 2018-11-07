@@ -158,9 +158,9 @@ module Rackblog
       if auth_good
         if params['add']
           if params['parent']
-            add_tag(params['add'], params['parent'])
+            @tags.add_tag(params['add'], params['parent'])
           else
-            add_tag(params['add'])
+            @tags.add_tag(params['add'])
           end
         end
         if params['del']
