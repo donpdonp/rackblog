@@ -12,8 +12,8 @@
   .body.e-content
     == GitHub::Markdown.render(article['body'])
   .tags
-    div
-      span tags:
+    .hname
+      | tags:
     ul
       - article['tags'].each do |tag_path|
         li
@@ -29,7 +29,8 @@
   .mentions
     - if article['mentions'].empty?
     - else
-      | Webmentions
+      .hname
+        | webmentions:
       ul
         - article['mentions'].each_with_index do |mention, idx|
           li

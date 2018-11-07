@@ -96,6 +96,10 @@ a { color: black; }
   display: flex;
 }
 
+.article .tags .hname {
+  margin-right: 0.4em;
+}
+
 .article .tags span {
 }
 
