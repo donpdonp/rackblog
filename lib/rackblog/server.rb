@@ -23,6 +23,7 @@ module Rackblog
       @db = lmdb.database('blog', create:true)
       @tags = Tags.new(lmdb.database('tags', create:true))
       @tags.add_tag('__root')
+      @mentions = lmdb.database('mentions', create:true)
       puts "Database connected with #{@db.stat[:entries]} posts and #{@tags.stat} tags on #{@config[:url]}"
     end
 
@@ -143,7 +144,7 @@ module Rackblog
       if req.get?
       end
       if req.post?
-        #req.form["source"]
+        #
         puts "lookingup target #{req.form["target"]}"
         path = URI(req.form["target"]).path
         article_path = Util.my_path(path)
@@ -151,6 +152,11 @@ module Rackblog
         if json
           puts "webmention article found #{article_path}"
           article = decode([req.path, json])
+          mentions = JSON.parse(@mentions[article_path] || [].to_json)
+          source = req.form["source"]
+          mentions.push(source)
+          puts "mentions #{mentions.to_json}"
+          @mentions[article_path] = mentions.to_json
           status = 202
           body_parts.push('Accepted')
         else
