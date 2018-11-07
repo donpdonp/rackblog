@@ -42,25 +42,27 @@ module Rackblog
     def call(env)
       req = Request.new(env)
       puts "** req: #{req.verb} #{req.mime_accept} #{req.path.inspect} "+
-           "=> parts #{req.path_parts} params #{req.qparams}"
+           "=> parts #{req.path_parts} params #{req.params}"
 
       # response
       status = 200
       headers = {'Content-Type' => 'text/html'}
       body_parts = []
 
-      if req.path_parts.empty?
+      if req.get? && req.path_parts.empty?
         body_parts.push(index(req.mime_accept))
-      elsif req.path_parts[0] == 'post'
+      elsif req.get? && req.path_parts[0] == 'post'
         if auth_ok?(req)
-          if req.verb == 'GET'
-            body_parts.push(layout('edit'))
-          elsif req.verb == 'POST'
-            slug = article_save(req.form)
-            post_url = "#{env['rack.url_scheme']}://#{env['HTTP_HOST']}#{URI(@config[:url]).path}#{slug}"
-            puts "Redirect: #{post_url}"
-            return [302, headers.merge({"Location" => post_url}), []]
-          end
+          body_parts.push(layout('edit'))
+        else
+          return [302, headers.merge({"Location" => "#{@config[:url]}"}), []]
+        end
+      elsif req.post? && req.path_parts[0] == 'post'
+        if auth_ok?(req)
+          slug = article_save(req.form)
+          post_url = "#{env['rack.url_scheme']}://#{env['HTTP_HOST']}#{URI(@config[:url]).path}#{slug}"
+          puts "Redirect: #{post_url}"
+          return [302, headers.merge({"Location" => post_url}), []]
         else
           return [302, headers.merge({"Location" => "#{@config[:url]}"}), []]
         end
@@ -68,18 +70,18 @@ module Rackblog
         puts "Tag search #{req.path_parts[1]}"
         body_parts.push(tags(req.path_parts[1]))
       elsif req.path_parts[0] == 'tags'
-        body_parts.push(tagviz(req.qparams, auth_ok?(req)))
+        body_parts.push(tagviz(req.params, auth_ok?(req)))
       elsif req.path_parts[0] == 'admin'
         puts "cookies: #{req.cookies.inspect}"
-        if req.qparams['logout']
+        if req.params['logout']
           Rack::Utils.delete_cookie_header!(headers, "rackblog", {:value => "",
                                                                   :path => URI(@config[:url]).path})
           return [302, headers.merge({"Location" => "#{@config[:url]}"}), []]
         elsif auth_ok?(req)
           body_parts.push(layout('admin'))
-        elsif req.qparams['token']
+        elsif req.params['token']
           auth_resp = HTTParty.post 'https://indieauth.com/auth',
-                                   {query: {code: req.qparams['token'],
+                                   {query: {code: req.params['token'],
                                             redirect_uri: "#{@config[:url]}admin"}}
           auth = Util.query_decode(auth_resp.parsed_response)
           if auth['error']
@@ -252,12 +254,20 @@ module Rackblog
       path = my_path(URI.decode(env['REQUEST_PATH']))
       @data = {
         path: path,
-        qparams: Util.query_decode(env["QUERY_STRING"]),
+        params: Util.query_decode(env["QUERY_STRING"]),
         verb: env['REQUEST_METHOD'],
         mime_accept: env["HTTP_ACCEPT"].split(';')[0].split(',')[0],
         form: rack_req.params,
         cookies: rack_req.cookies
       }
+    end
+
+    def get?
+      @data[:verb] == 'GET'
+    end
+
+    def post?
+      @data[:verb] == 'POST'
     end
 
     def path
@@ -270,8 +280,8 @@ module Rackblog
       parts
     end
 
-    def qparams
-      @data[:qparams]
+    def params
+      @data[:params]
     end
 
     def mime_accept
@@ -300,6 +310,7 @@ module Rackblog
     def self.query_decode(query)
       URI.decode_www_form(query).reduce({}){|h, v| h[v[0]]=v[1]; h}
     end
+
     def self.path_prefix_remove(prefix_url, path)
       path.sub(/^#{URI(prefix_url).path}/, '/')
     end
