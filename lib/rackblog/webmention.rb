@@ -1,6 +1,6 @@
 module Rackblog
-#  class Webmention
-    def self.webmention(req, status, headers, body_parts)
+  class Webmention
+    def self.dispatch(req, status, headers, body_parts)
       if req.get?
       end
       if req.post?
@@ -17,7 +17,7 @@ module Rackblog
               if mentions.include?(source.to_s)
                 puts "dupe source ignored: #{source}"
               else
-                mentions.push({source: source}.to_json)
+                mentions.push({source: source})
               end
               puts "mentions: #{mentions.to_json}"
               Rackblog.Mentions[article_path] = mentions.to_json
@@ -42,5 +42,12 @@ module Rackblog
     def self.mentions(slug)
       JSON.parse(Rackblog.Mentions[slug] || [].to_json)
     end
-#  end
+
+    def self.backfill
+      Rackblog.Mentions.each do |mention_json|
+        mention = JSON.parse(mention_json)
+        puts "checking #{mention}"
+      end
+    end
+  end
 end

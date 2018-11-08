@@ -65,7 +65,7 @@ module Rackblog
       elsif req.path_parts[0] == 'admin'
         status, headers, body_parts = admin(req, status, headers, body_parts)
       elsif req.path_parts[0] == 'webmention'
-        status, headers, body_parts = Rackblog.webmention(req, status, headers, body_parts)
+        status, headers, body_parts = Rackblog::Webmention.dispatch(req, status, headers, body_parts)
       else
         article_path = req.path
         last_part = req.path_parts[-1]
@@ -87,7 +87,7 @@ module Rackblog
             body_parts.push(layout('edit', {article: article}))
           else
             article['tags'].map!{|t| @tags.tag_parents(t)}
-            article['mentions'] = Rackblog.mentions(req.path)
+            article['mentions'] = Rackblog::Webmention.mentions(req.path)
             body_parts.push(layout('article', {article: article}))
           end
         end
