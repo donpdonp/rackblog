@@ -53,7 +53,9 @@ module Rackblog
             doc = self.microformat_get(mention['source'])
             entries = self.has_reply_to(doc, 'h-entry', target)
             puts "- #{mention['source']} -> h-entry #{entries.inspect} (text was #{mention['text']})"
-            mention['text'] = entries.join(' ')
+            if entries.length > 0
+              mention['text'] = entries.join(' ')
+            end
           rescue StandardError => e
             puts "#{e} #{mention['source']}"
           end
