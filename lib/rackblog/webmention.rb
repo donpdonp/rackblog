@@ -52,11 +52,13 @@ module Rackblog
           begin
             doc = self.microformat_get(mention['source'])
             entries = self.has_reply_to(doc, 'h-entry', target)
-            puts "- #{mention['source']} -> h-entry #{entries.inspect}"
+            puts "- #{mention['source']} -> h-entry #{entries.inspect} (text was #{mention['text']})"
+            mention['text'] = entries.join(' ')
           rescue StandardError => e
             puts "#{e} #{mention['source']}"
           end
         end
+        Rackblog.Mentions[mention_kv[0]] = mentions.to_json
       end
       body_parts.push("backfill checked #{Rackblog.Mentions.size} webmentions")
       [status, headers, body_parts]
@@ -70,8 +72,16 @@ module Rackblog
 
     def self.has_reply_to(doc, mf_tag, reply_url)
       doc.css(".#{mf_tag}").map do |entry|
-        puts "#{mf_tag} hit. css #{".u-in-reply-to[href='#{reply_url}']"}"
-        entry.css(".u-in-reply-to[href='#{reply_url}']").size
+        if entry.css(".u-in-reply-to[href='#{reply_url}']").size > 0
+          econtent = entry.css(".e-content > text()").first
+          text = econtent.text.chomp('')
+          if text.empty?
+            epcontent = entry.css(".e-content > p > text()").first
+            text = epcontent.text.chomp('')
+          end
+          puts "** text #{text}"
+          text
+        end
       end.compact
     end
 

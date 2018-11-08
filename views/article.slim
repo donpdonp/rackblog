@@ -34,6 +34,8 @@
       ul
         - article['mentions'].each_with_index do |mention, idx|
           li
-            - if mention['source']
+            - if mention['text']
+              a href="#{mention['source']}"
+                | #{mention['text']}
+            - else
               | #{mention['source']}
-
