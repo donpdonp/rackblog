@@ -15,7 +15,7 @@ module Rackblog
     end
 
     def self.my_path(path)
-      Util.path_prefix_remove(Rackblog::config[:url], path)
+      Util.path_prefix_remove(Rackblog.Config[:url], path)
     end
 
     def self.path_prefix_remove(prefix_url, path)

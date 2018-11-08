@@ -1,12 +1,3 @@
-require 'set'
-require 'json'
-require 'slim'
-require 'lmdb'
-require 'httparty'
-require 'github/markdown'
-require 'atom/feed'
-
-
 module Rackblog
   class Server
     # Article
@@ -16,15 +7,15 @@ module Rackblog
     #  "time"=>"2015-02-08T17:04:23-08:00"}
 
     def initialize(config)
-      Rackblog::config = @config = config
+      Rackblog.Config = @config = config
       @config[:url]+= "/" unless @config[:url][-1] == '/'
       Slim::Engine.set_options({pretty: true})
       @viewcache = {}
       lmdb = LMDB.new('db')
-      @db = lmdb.database('blog', create:true)
-      @tags = Tags.new(lmdb.database('tags', create:true))
+      Rackblog.Db = @db = lmdb.database('blog', create:true)
+      Rackblog.Tags = @tags = Tags.new(lmdb.database('tags', create:true))
       @tags.add_tag('__root')
-      @mentions = lmdb.database('mentions', create:true)
+      Rackblog.Mentions = @mentions = lmdb.database('mentions', create:true)
       puts "Database connected with #{@db.stat[:entries]} posts and #{@tags.stat} tags on #{@config[:url]}"
     end
 
@@ -74,7 +65,7 @@ module Rackblog
       elsif req.path_parts[0] == 'admin'
         status, headers, body_parts = admin(req, status, headers, body_parts)
       elsif req.path_parts[0] == 'webmention'
-        status, headers, body_parts = webmention(req, status, headers, body_parts)
+        status, headers, body_parts = Rackblog.webmention(req, status, headers, body_parts)
       else
         article_path = req.path
         last_part = req.path_parts[-1]
@@ -96,7 +87,7 @@ module Rackblog
             body_parts.push(layout('edit', {article: article}))
           else
             article['tags'].map!{|t| @tags.tag_parents(t)}
-            article['mentions'] = self.mentions(req.path)
+            article['mentions'] = Rackblog.mentions(req.path)
             body_parts.push(layout('article', {article: article}))
           end
         end
@@ -140,49 +131,6 @@ module Rackblog
         return [302, headers.merge({"Location" => auth_url}), []]
       end
       [status, headers, body_parts]
-    end
-
-    def webmention(req, status, headers, body_parts)
-      if req.get?
-      end
-      if req.post?
-        target = Util.safe_uri(req.form["target"])
-        if target
-          path = target.path
-          article_path = Util.my_path(path)
-          json = @db.get(article_path)
-          if json
-            puts "webmention article found #{article_path}"
-            mentions = self.mentions(article_path)
-            source = Util.safe_uri(req.form["source"])
-            if source
-              if mentions.include?(source)
-                puts "dupe source ignored: #{source}"
-              else
-                mentions.push(source)
-              end
-              puts "mentions: #{mentions.to_json}"
-              @mentions[article_path] = mentions.to_json
-              status = 202
-              body_parts.push('Accepted')
-            else
-              puts "webmention bad source #{source}"
-              status = 400
-            end
-          else
-            puts "webmention article not found #{article_path}"
-            status = 400
-          end
-        else
-          puts "webmention bad target #{target}"
-          status = 400
-        end
-      end
-      [status, headers, body_parts]
-    end
-
-    def mentions(slug)
-      JSON.parse(@mentions[slug] || [].to_json)
     end
 
     def auth_ok?(req)

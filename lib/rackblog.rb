@@ -1,9 +1,19 @@
-require_relative "rackblog/server"
-require_relative "rackblog/tags"
-require_relative "rackblog/util"
+require 'set'
+require 'json'
+require 'slim'
+require 'lmdb'
+require 'httparty'
+require 'github/markdown'
+require 'atom/feed'
+
+Dir.glob("lib/rackblog/*.rb").each do |file|
+  parts = file.split('/')
+  parts.shift
+  require_relative parts.join('/')
+end
 
 module Rackblog
   class << self
-    attr_accessor :config
+    attr_accessor :Config, :Db, :Tags, :Mentions
   end
 end
