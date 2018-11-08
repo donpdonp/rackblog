@@ -1,5 +1,6 @@
 require_relative "rackblog/server"
 require_relative "rackblog/tags"
+require_relative "rackblog/util"
 
 module Rackblog
   class << self

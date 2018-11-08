@@ -6,6 +6,7 @@ require 'httparty'
 require 'github/markdown'
 require 'atom/feed'
 
+
 module Rackblog
   class Server
     # Article
@@ -42,8 +43,6 @@ module Rackblog
 ## Routing
     def call(env)
       req = Request.new(env)
-      puts "** req: #{req.verb} #{req.mime_accept} #{req.path.inspect} "+
-           "=> parts #{req.path_parts} params #{req.params}"
 
       # response
       status = 200
@@ -108,6 +107,8 @@ module Rackblog
         body_parts.push("Page not found for #{req.path}")
       end
 
+      puts "** req: #{req.verb} #{req.mime_accept} #{req.path.inspect} "+
+           "#{req.path_parts} #{req.params} #{req.form}=> #{status}"
       [status, headers, body_parts]
     end
 ## End Routing
@@ -145,24 +146,35 @@ module Rackblog
       if req.get?
       end
       if req.post?
-        path = URI(req.form["target"]).path
-        article_path = Util.my_path(path)
-        json = @db.get(article_path)
-        if json
-          puts "webmention article found #{article_path}"
-          article = decode([req.path, json])
-          mentions = self.mentions(article_path)
-          source = req.form["source"]
-          if mentions.include?(source)
-            puts "dupe source ignored: #{source}"
+        target = Util.safe_uri(req.form["target"])
+        if target
+          path = target.path
+          article_path = Util.my_path(path)
+          json = @db.get(article_path)
+          if json
+            puts "webmention article found #{article_path}"
+            mentions = self.mentions(article_path)
+            source = Util.safe_uri(req.form["source"])
+            if source
+              if mentions.include?(source)
+                puts "dupe source ignored: #{source}"
+              else
+                mentions.push(source)
+              end
+              puts "mentions: #{mentions.to_json}"
+              @mentions[article_path] = mentions.to_json
+              status = 202
+              body_parts.push('Accepted')
+            else
+              puts "webmention bad source #{source}"
+              status = 400
+            end
           else
-            mentions.push(source)
+            puts "webmention article not found #{article_path}"
+            status = 400
           end
-          puts "mentions: #{mentions.to_json}"
-          @mentions[article_path] = mentions.to_json
-          status = 202
-          body_parts.push('Accepted')
         else
+          puts "webmention bad target #{target}"
           status = 400
         end
       end
@@ -342,20 +354,6 @@ module Rackblog
 
     def body
       @data[:body]
-    end
-  end
-
-  class Util
-    def self.query_decode(query)
-      URI.decode_www_form(query).reduce({}){|h, v| h[v[0]]=v[1]; h}
-    end
-
-    def self.my_path(path)
-      Util.path_prefix_remove(Rackblog::config[:url], path)
-    end
-
-    def self.path_prefix_remove(prefix_url, path)
-      path.sub(/^#{URI(prefix_url).path}/, '/')
     end
   end
 end
