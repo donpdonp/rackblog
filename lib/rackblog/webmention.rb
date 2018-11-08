@@ -45,13 +45,35 @@ module Rackblog
 
     def self.backfill(req, status, headers, body_parts)
       Rackblog.Mentions.each do |mention_kv|
+        puts "webmentions for #{mention_kv[0]}"
         mentions = JSON.parse(mention_kv[1])
         mentions.each do |mention|
-          puts "checking #{mention_kv[0]} #{mention['source']}"
+          microformat = self.microformat_get(mention['source'])
+          puts "- #{mention['source']} -> #{microformat.inspect}"
         end
       end
       body_parts.push("backfill checked #{Rackblog.Mentions.size} webmentions")
       [status, headers, body_parts]
+    end
+
+    def self.microformat_get(url)
+      puts "get #{url}"
+      begin
+        resp = HTTParty.get url
+        doc = Nokogiri::HTML(resp.body)
+        doc.css(".h-entry").each do |entry|
+          puts "h-entry found."
+          replies = entry.css(".u-in-reply-to")
+          replies.each do |reply|
+            puts "replyto #{reply.inspect}"
+            classtree = reply.ancestors.map{|a| a.attribute('class')}.compact.map{|a| a.value.split(/\s+/)}
+            if classtree.flatten.include?('h-entry')
+            end
+          end
+        end
+      rescue StandardError => e
+        puts "#{e} #{url}"
+      end
     end
   end
 end

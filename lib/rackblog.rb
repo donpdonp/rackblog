@@ -5,6 +5,7 @@ require 'lmdb'
 require 'httparty'
 require 'github/markdown'
 require 'atom/feed'
+require 'nokogiri'
 
 Dir.glob("lib/rackblog/*.rb").each do |file|
   parts = file.split('/')
