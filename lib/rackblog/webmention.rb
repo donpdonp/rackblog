@@ -43,11 +43,15 @@ module Rackblog
       JSON.parse(Rackblog.Mentions[slug] || [].to_json)
     end
 
-    def self.backfill
-      Rackblog.Mentions.each do |mention_json|
-        mention = JSON.parse(mention_json)
-        puts "checking #{mention}"
+    def self.backfill(req, status, headers, body_parts)
+      Rackblog.Mentions.each do |mention_kv|
+        mentions = JSON.parse(mention_kv[1])
+        mentions.each do |mention|
+          puts "checking #{mention_kv[0]} #{mention['source']}"
+        end
       end
+      body_parts.push("backfill checked #{Rackblog.Mentions.size} webmentions")
+      [status, headers, body_parts]
     end
   end
 end

@@ -64,8 +64,10 @@ module Rackblog
         body_parts.push(tagviz(req.params, auth_ok?(req)))
       elsif req.path_parts[0] == 'admin'
         status, headers, body_parts = admin(req, status, headers, body_parts)
-      elsif req.path_parts[0] == 'webmention'
+      elsif req.path_parts.length == 1 && req.path_parts[0] == 'webmention'
         status, headers, body_parts = Rackblog::Webmention.dispatch(req, status, headers, body_parts)
+      elsif req.path_parts[0] == 'webmention' && req.path_parts[1] == 'backfill'
+        status, headers, body_parts = Rackblog::Webmention.backfill(req, status, headers, body_parts)
       else
         article_path = req.path
         last_part = req.path_parts[-1]
