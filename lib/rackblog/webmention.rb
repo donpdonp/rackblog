@@ -17,7 +17,7 @@ module Rackblog
               if mentions.include?(source.to_s)
                 puts "dupe source ignored: #{source}"
               else
-                mentions.push(source.to_s)
+                mentions.push({source: source}.to_json)
               end
               puts "mentions: #{mentions.to_json}"
               Rackblog.Mentions[article_path] = mentions.to_json

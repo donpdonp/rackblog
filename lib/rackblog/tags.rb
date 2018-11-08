@@ -9,7 +9,6 @@ module Rackblog
     end
 
     def tag_parents(name, parents = [])
-      puts "tag_parents #{name.inspect} #{parents.inspect}"
       parents << name
       tag = load_tag(name)
       if tag && tag[:parent] != '__root'
