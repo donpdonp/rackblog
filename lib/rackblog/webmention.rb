@@ -45,11 +45,17 @@ module Rackblog
 
     def self.backfill(req, status, headers, body_parts)
       Rackblog.Mentions.each do |mention_kv|
-        puts "webmentions for #{mention_kv[0]}"
+        target = "#{Rackblog.Config[:url]}#{mention_kv[0]}"
+        puts "webmentions for #{target}"
         mentions = JSON.parse(mention_kv[1])
         mentions.each do |mention|
-          microformat = self.microformat_get(mention['source'])
-          puts "- #{mention['source']} -> #{microformat.inspect}"
+          begin
+            doc = self.microformat_get(mention['source'])
+            entries = self.has_reply_to(doc, 'h-entry', target)
+            puts "- #{mention['source']} -> h-entry #{entries.inspect}"
+          rescue StandardError => e
+            puts "#{e} #{mention['source']}"
+          end
         end
       end
       body_parts.push("backfill checked #{Rackblog.Mentions.size} webmentions")
@@ -58,22 +64,16 @@ module Rackblog
 
     def self.microformat_get(url)
       puts "get #{url}"
-      begin
-        resp = HTTParty.get url
-        doc = Nokogiri::HTML(resp.body)
-        doc.css(".h-entry").each do |entry|
-          puts "h-entry found."
-          replies = entry.css(".u-in-reply-to")
-          replies.each do |reply|
-            puts "replyto #{reply.inspect}"
-            classtree = reply.ancestors.map{|a| a.attribute('class')}.compact.map{|a| a.value.split(/\s+/)}
-            if classtree.flatten.include?('h-entry')
-            end
-          end
-        end
-      rescue StandardError => e
-        puts "#{e} #{url}"
-      end
+      resp = HTTParty.get url
+      Nokogiri::HTML(resp.body)
     end
+
+    def self.has_reply_to(doc, mf_tag, reply_url)
+      doc.css(".#{mf_tag}").map do |entry|
+        puts "#{mf_tag} hit. css #{".u-in-reply-to[href='#{reply_url}']"}"
+        entry.css(".u-in-reply-to[href='#{reply_url}']").size
+      end.compact
+    end
+
   end
 end
