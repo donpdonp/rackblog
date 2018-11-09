@@ -42,8 +42,9 @@
               a href="#{mention['reply_to']['author']['url']}"
                 | #{mention['reply_to']['author']['name']}
             - elsif mention['like']
-              ' like
               a href="#{mention['like']['author']['url']}"
                 | #{mention['like']['author']['name']}
+              a href="#{mention['source']}"
+                | like
             - else
               | #{mention['source']}
