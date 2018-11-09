@@ -14,7 +14,7 @@ module Rackblog
             mentions = self.mentions(article_path)
             source = Util.safe_uri(req.form["source"])
             if source
-              if mentions.include?(source.to_s)
+              if mentions.map {|m| m['source']}.include?(source.to_s)
                 puts "dupe source ignored: #{source}"
               else
                 mentions.push({source: source})
@@ -79,26 +79,27 @@ module Rackblog
     end
 
     def self.reply_to_text(doc)
-      entries = self.has_reply_to(doc, 'h-entry', target)
-      puts "- #{mention['source']} -> h-entry #{entries.inspect} (text was #{mention['text']})"
-      if entries.length > 0
+      entries = doc.css(".h-entry").map do |entry|
+        text = self.has_reply_to(entry, target)
+        puts "-  -> h-entry #{entry.inspect} has text #{text.inspect}"
+        text
+      end
+      if entries.compact.length > 0
         entries.join(' ')
       end
     end
 
-    def self.has_reply_to(doc, mf_tag, reply_url)
-      doc.css(".#{mf_tag}").map do |entry|
-        if entry.css(".u-in-reply-to[href='#{reply_url}']").size > 0
-          econtent = entry.css(".e-content > text()").first
-          text = econtent.text.chomp('')
-          if text.empty?
-            epcontent = entry.css(".e-content > p > text()").first
-            text = epcontent.text.chomp('')
-          end
-          puts "** text #{text}"
-          text
+    def self.has_reply_to(entry, reply_url)
+      if entry.css(".u-in-reply-to[href='#{reply_url}']").size > 0
+        econtent = entry.css(".e-content > text()").first
+        text = econtent.text.chomp('')
+        if text.empty?
+          epcontent = entry.css(".e-content > p > text()").first
+          text = epcontent.text.chomp('')
         end
-      end.compact
+        puts "** text #{text}"
+        text
+      end
     end
 
   end
