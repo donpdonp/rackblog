@@ -53,11 +53,15 @@ module Rackblog
             doc = self.html_load(mention['source'])
             reply_to_text = self.reply_to_text(doc, target)
             if reply_to_text
-              mention['text'] = reply_to_text
+              reply_blob = {text: reply_to_text, author: { url: "", name: ""}}
+              puts "reply_to = #{reply_blob.to_json}"
+              mention['reply_to'] = reply_blob
             end
             like_of = self.like_of(doc, target)
             if like_of
-              mention['like'] = like_of
+              like_blob = {author: { url: "", name: ""}}
+              puts "reply_to = #{like_blob.to_json}"
+              mention['like'] = like_blob
             end
           rescue SocketError => e
             puts "#{e} #{mention['source']}"

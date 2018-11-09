@@ -34,8 +34,16 @@
       ul
         - article['mentions'].each_with_index do |mention, idx|
           li
-            - if mention['text']
+            - if mention['reply_to']
+              ' Reply:
               a href="#{mention['source']}"
-                | #{mention['text']}
+                | #{mention['reply_to']['text']}
+              ' -
+              a href="#{mention['reply_to']['author']['url']}"
+                | #{mention['reply_to']['author']['name']}
+            - elsif mention['like']
+              ' like
+              a href="#{mention['like']['author']['url']}"
+                | #{mention['like']['author']['name']}
             - else
               | #{mention['source']}
