@@ -50,11 +50,14 @@ module Rackblog
         mentions = JSON.parse(mention_kv[1])
         mentions.each do |mention|
           begin
-            doc = self.microformat_get(mention['source'])
-            entries = self.has_reply_to(doc, 'h-entry', target)
-            puts "- #{mention['source']} -> h-entry #{entries.inspect} (text was #{mention['text']})"
-            if entries.length > 0
-              mention['text'] = entries.join(' ')
+            doc = self.html_load(mention['source'])
+            reply_to_text = self.reply_to_text(doc)
+            if reply_to_text
+              mention['text'] = reply_to_text
+            end
+            like_of = self.like_of(doc)
+            if like_of
+              mention['like'] = like_of
             end
           rescue StandardError => e
             puts "#{e} #{mention['source']}"
@@ -66,10 +69,21 @@ module Rackblog
       [status, headers, body_parts]
     end
 
-    def self.microformat_get(url)
+    def self.html_load(url)
       puts "get #{url}"
       resp = HTTParty.get url
       Nokogiri::HTML(resp.body)
+    end
+
+    def self.like_of(doc)
+    end
+
+    def self.reply_to_text(doc)
+      entries = self.has_reply_to(doc, 'h-entry', target)
+      puts "- #{mention['source']} -> h-entry #{entries.inspect} (text was #{mention['text']})"
+      if entries.length > 0
+        entries.join(' ')
+      end
     end
 
     def self.has_reply_to(doc, mf_tag, reply_url)
