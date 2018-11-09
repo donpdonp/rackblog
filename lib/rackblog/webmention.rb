@@ -51,11 +51,11 @@ module Rackblog
         mentions.each do |mention|
           begin
             doc = self.html_load(mention['source'])
-            reply_to_text = self.reply_to_text(doc)
+            reply_to_text = self.reply_to_text(doc, target)
             if reply_to_text
               mention['text'] = reply_to_text
             end
-            like_of = self.like_of(doc)
+            like_of = self.like_of(doc, target)
             if like_of
               mention['like'] = like_of
             end
@@ -75,13 +75,13 @@ module Rackblog
       Nokogiri::HTML(resp.body)
     end
 
-    def self.like_of(doc)
+    def self.like_of(doc, target)
     end
 
-    def self.reply_to_text(doc)
+    def self.reply_to_text(doc, target)
       entries = doc.css(".h-entry").map do |entry|
         text = self.has_reply_to(entry, target)
-        puts "-  -> h-entry #{entry.inspect} has text #{text.inspect}"
+        puts "-  -> #{entry.name} .#{entry.attributes['class']} has text #{text.inspect}"
         text
       end
       if entries.compact.length > 0
