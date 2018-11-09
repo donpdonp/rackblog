@@ -63,7 +63,7 @@ module Rackblog
               puts "like = #{like_blob.to_json}"
               mention['like'] = like_blob
             end
-          rescue SocketError => e
+          rescue SocketError, Errno::EHOSTUNREACH => e
             puts "#{e} #{mention['source']}"
           end
         end
