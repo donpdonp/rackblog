@@ -59,7 +59,7 @@ module Rackblog
             if like_of
               mention['like'] = like_of
             end
-          rescue StandardError => e
+          rescue SocketError => e
             puts "#{e} #{mention['source']}"
           end
         end
@@ -76,12 +76,22 @@ module Rackblog
     end
 
     def self.like_of(doc, target)
+      likes = doc.css(".h-entry").map do |entry|
+        like = self.has_like_of(entry, target)
+        puts "- #{entry.name} .#{entry.attributes['class']} has like #{like.inspect}"
+        like
+      end
+      likes.compact.length > 0
+    end
+
+    def self.has_like_of(entry, target)
+      entry.css(".u-like-of").length > 0 #mf2 ambiguity
     end
 
     def self.reply_to_text(doc, target)
       entries = doc.css(".h-entry").map do |entry|
         text = self.has_reply_to(entry, target)
-        puts "-  -> #{entry.name} .#{entry.attributes['class']} has text #{text.inspect}"
+        puts "- #{entry.name} .#{entry.attributes['class']} has text #{text.inspect}"
         text
       end
       if entries.compact.length > 0
@@ -97,7 +107,6 @@ module Rackblog
           epcontent = entry.css(".e-content > p > text()").first
           text = epcontent.text.chomp('')
         end
-        puts "** text #{text}"
         text
       end
     end
