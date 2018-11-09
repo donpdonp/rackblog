@@ -60,7 +60,7 @@ module Rackblog
             like_of = self.like_of(doc, target)
             if like_of
               like_blob = {author: { url: "", name: ""}}
-              puts "reply_to = #{like_blob.to_json}"
+              puts "like = #{like_blob.to_json}"
               mention['like'] = like_blob
             end
           rescue SocketError => e
