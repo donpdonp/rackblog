@@ -85,7 +85,7 @@ module Rackblog
         puts "- #{entry.name} .#{entry.attributes['class']} has like #{like.inspect}"
         like
       end
-      likes.compact.length > 0
+      likes.select{|l| l}.length > 0
     end
 
     def self.has_like_of(entry, target)
