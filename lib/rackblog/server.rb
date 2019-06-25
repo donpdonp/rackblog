@@ -74,7 +74,6 @@ module Rackblog
         edit = last_part == 'edit'
         if edit
           article_path = '/'+req.path_parts[0, req.path_parts.length-1].join('/')
-          puts "edit article path #{article_path}"
         end
         if last_part == 'delete' && auth_ok?(req)
           article_path = '/'+req.path_parts[0, req.path_parts.length-1].join('/')
@@ -136,7 +135,7 @@ module Rackblog
     end
 
     def auth_ok?(req)
-      @config[:apikey] && req.cookies['rackblog'] == @config[:apikey]
+      @config[:apikey] && req.cookies['indieauth'] == @config[:apikey]
     end
 
     def tags(tag)
