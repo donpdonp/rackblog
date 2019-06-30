@@ -19,9 +19,6 @@ module Rackblog
               else
                 mentions.push({source: source_uri})
               end
-              source = HTTParty.get source_uri
-              puts "GET #{source}"
-              puts "all mentions: #{mentions.to_json}"
               Rackblog.Mentions[article_path] = mentions.to_json
               status = 202
               body_parts.push('Accepted')
