@@ -15,13 +15,13 @@ module Rackblog
             source_uri = Util.safe_uri(req.form["source"])
             if source_uri
               if mentions.map {|m| m['source']}.include?(source_uri.to_s)
-                puts "dupe source ignored: #{source}"
+                puts "dupe source ignored: #{source_uri}"
               else
                 mentions.push({source: source_uri})
-                source = HTTParty.get source_uri
-                puts "source #{source}"
               end
-              puts "mentions: #{mentions.to_json}"
+              source = HTTParty.get source_uri
+              puts "GET #{source}"
+              puts "all mentions: #{mentions.to_json}"
               Rackblog.Mentions[article_path] = mentions.to_json
               status = 202
               body_parts.push('Accepted')
