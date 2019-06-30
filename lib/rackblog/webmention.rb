@@ -12,19 +12,21 @@ module Rackblog
           if json
             puts "webmention article found #{article_path}"
             mentions = self.mentions(article_path)
-            source = Util.safe_uri(req.form["source"])
-            if source
-              if mentions.map {|m| m['source']}.include?(source.to_s)
+            source_uri = Util.safe_uri(req.form["source"])
+            if source_uri
+              if mentions.map {|m| m['source']}.include?(source_uri.to_s)
                 puts "dupe source ignored: #{source}"
               else
-                mentions.push({source: source})
+                mentions.push({source: source_uri})
+                source = HTTParty.get source_uri
+                puts "source #{source}"
               end
               puts "mentions: #{mentions.to_json}"
               Rackblog.Mentions[article_path] = mentions.to_json
               status = 202
               body_parts.push('Accepted')
             else
-              puts "webmention bad source #{source}"
+              puts "webmention bad source #{source_uri}"
               status = 400
             end
           else
