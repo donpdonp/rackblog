@@ -196,6 +196,8 @@ module Rackblog
         decode_list_html(articles)
       elsif mime == "application/atom+xml"
         decode_list_atom(articles)
+      else
+        decode_list_html(articles)
       end
     end
 
