@@ -122,5 +122,9 @@ a { color: black; }
 
 code {
   font-size: 90%;
+}
+
+pre {
   line-height: 1;
 }
+
