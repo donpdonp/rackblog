@@ -124,7 +124,7 @@ code {
   font-size: 90%;
 }
 
-pre {
+code[lang~="html"] {
   line-height: 1;
 }
 
