@@ -124,7 +124,12 @@ code {
   font-size: 90%;
 }
 
-code[lang~="html"] {
+pre[data-lang]::before {
+/*  content: attr(data-lang);
+  display: block;*/
+}
+
+pre[data-lang="HTML"]{
   line-height: 1;
 }
 
