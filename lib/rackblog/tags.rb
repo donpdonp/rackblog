@@ -2,6 +2,7 @@ module Rackblog
   class Tags
     def initialize(db)
       @tags = db
+      add_tag('__root')
     end
 
     def stat

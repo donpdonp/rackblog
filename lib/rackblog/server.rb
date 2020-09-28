@@ -15,7 +15,6 @@ module Rackblog
       lmdb = LMDB.new('db')
       Rackblog.Db = @db = lmdb.database('blog', create:true)
       Rackblog.Tags = @tags = Tags.new(lmdb.database('tags', create:true))
-      @tags.add_tag('__root')
       Rackblog.Mentions = @mentions = lmdb.database('mentions', create:true)
       Rackblog.Auth = Rackblog::Auth.new(lmdb.database('auth', create:true))
       puts "Database connected with #{@db.stat[:entries]} posts #{@tags.stat} tags #{@mentions.stat[:entries]} mentions"
