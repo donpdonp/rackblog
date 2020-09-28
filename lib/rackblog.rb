@@ -15,6 +15,6 @@ end
 
 module Rackblog
   class << self
-    attr_accessor :Config, :Db, :Tags, :Mentions
+    attr_accessor :Config, :Db, :Tags, :Mentions, :Auth
   end
 end
