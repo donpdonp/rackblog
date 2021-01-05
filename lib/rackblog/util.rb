@@ -19,7 +19,7 @@ module Rackblog
     end
 
     def self.path_prefix_remove(prefix_url, path)
-      path.sub(/^#{URI(prefix_url).path}/, '/')
+      path.to_s.sub(/^#{URI(prefix_url).path}/, '/')
     end
   end
 end

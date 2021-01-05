@@ -255,7 +255,7 @@ module Rackblog
   class Request
     def initialize(env)
       rack_req = Rack::Request.new(env)
-      path = Util.my_path(URI.decode(env['REQUEST_PATH']))
+      path = Util.my_path(URI(env['REQUEST_PATH']))
       @data = {
         path: path,
         params: Util.query_decode(env["QUERY_STRING"]),
