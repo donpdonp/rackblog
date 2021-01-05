@@ -1,5 +1,6 @@
 source 'https://rubygems.org'
 
+gem 'rexml' #ruby3
 gem 'rack'
 gem 'httparty'
 gem 'slim'
