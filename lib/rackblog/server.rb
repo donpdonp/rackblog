@@ -136,7 +136,7 @@ module Rackblog
     end
 
     def auth_ok?(req)
-      @config[:apikey] && req.cookies['indieauth'] == @config[:apikey]
+      @config[:apikey] && (req.cookies['indieauth'] == @config[:apikey] || req.params["key"] == @config[:apikey])
     end
 
     def tags(tag)
