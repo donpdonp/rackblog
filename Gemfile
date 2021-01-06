@@ -1,6 +1,5 @@
 source 'https://rubygems.org'
 
-gem 'rexml' #ruby3
 gem 'rack'
 gem 'httparty'
 gem 'slim'
@@ -9,3 +8,6 @@ gem 'puma'
 gem 'github-markdown'
 gem 'atom-tools'
 gem 'nokogiri'
+
+gem 'rexml' # external in ruby3
+gem 'steep' 

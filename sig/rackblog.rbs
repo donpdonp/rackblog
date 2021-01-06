@@ -1,0 +1,11 @@
+module Rackblog
+  attr_accessor self.Config: untyped
+
+  attr_accessor self.Db: untyped
+
+  attr_accessor self.Tags: untyped
+
+  attr_accessor self.Mentions: untyped
+
+  attr_accessor self.Auth: untyped
+end

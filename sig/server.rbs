@@ -1,0 +1,41 @@
+# Classes
+module Rackblog
+  class Server
+    @config: untyped
+    @viewcache: Hash[String, {last: untyped}]
+    @db: untyped
+    @tags: untyped
+    @mentions: untyped
+
+    def initialize: (untyped config) -> nil
+    def load_view: (String name) -> Slim::Template
+    def call: (untyped env) -> [Integer, Hash[String, String], Array[String]]
+    def admin: (Request req, Integer status, Hash[String, String] headers, Array[bot] body_parts) -> [Integer, Hash[String, String], Array[untyped]]
+    def auth_ok?: (Request req) -> untyped
+    def tags: (untyped tag) -> untyped
+    def tagviz: (untyped params, untyped auth_good) -> untyped
+    def index: (untyped mime) -> untyped
+    def decode: ([untyped, untyped] record) -> untyped
+    def decode_list_html: (Array[untyped] articles) -> untyped
+    def decode_list_atom: (Array[untyped] articles) -> untyped
+    def layout: (String template_name, ?{tags: untyped, article: untyped, articles: Array[untyped], name: untyped} params) -> untyped
+    def to_slug: (String str) -> String
+    def article_save: (untyped data) -> untyped
+  end
+
+  class Request
+    @data: {path: untyped, params: untyped, verb: untyped, mime_accept: untyped, form: untyped, cookies: untyped}
+
+    def initialize: (untyped env) -> {path: untyped, params: untyped, verb: untyped, mime_accept: untyped, form: untyped, cookies: untyped}
+    def get?: -> untyped
+    def post?: -> untyped
+    def path: -> untyped
+    def path_parts: -> untyped
+    def params: -> untyped
+    def mime_accept: -> untyped
+    def verb: -> untyped
+    def form: -> untyped
+    def cookies: -> untyped
+    def body: -> nil
+  end
+end
