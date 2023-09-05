@@ -1,7 +1,7 @@
 module Rackblog
   class Util
     def self.query_decode(query)
-      URI.decode_www_form(query).reduce({}){|h, v| h[v[0]]=v[1]; h}
+      URI.decode_www_form(query).reduce({}) { |h, v| h[v[0]] = v[1]; h }
     end
 
     def self.safe_uri(url)

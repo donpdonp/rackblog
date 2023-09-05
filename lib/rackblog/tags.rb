@@ -20,12 +20,12 @@ module Rackblog
     end
 
     def tag_children(name)
-    # {:name=>"blockchain", :parent=>"cryptocurrency", :children=>[]}]}
+      # {:name=>"blockchain", :parent=>"cryptocurrency", :children=>[]}]}
       children = []
       tag = load_tag(name)
       if tag
-       children = [name]
-       tag[:children].each{|child| children += tag_children(child) }
+        children = [name]
+        tag[:children].each { |child| children += tag_children(child) }
       end
       children
     end
@@ -33,16 +33,16 @@ module Rackblog
     def load_tags(name)
       name = '__root' if name.nil?
       tag = load_tag(name)
-      tag[:children].map!{|tag| load_tags(tag)}.compact! if tag
+      tag[:children].map! { |tag| load_tags(tag) }.compact! if tag
       tag
     end
 
-    def load_tag(name='__root')
+    def load_tag(name = '__root')
       json = @tags[name]
-      json && JSON.parse(json, {symbolize_names:true})
+      json && JSON.parse(json, { symbolize_names: true })
     end
 
-    def add_tag(name, parent='__root')
+    def add_tag(name, parent = '__root')
       puts "add_tag #{name} to #{parent}"
       tag = load_tag(name)
       if tag
@@ -79,7 +79,7 @@ module Rackblog
     end
 
     def blank_tag(name, parent)
-      {name: name, parent: parent, children: []}
+      { name: name, parent: parent, children: [] }
     end
   end
 end

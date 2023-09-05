@@ -14,10 +14,10 @@ module Rackblog
             mentions = self.mentions(article_path)
             source_uri = Util.safe_uri(req.form["source"])
             if source_uri
-              if mentions.map {|m| m['source']}.include?(source_uri.to_s)
+              if mentions.map { |m| m['source'] }.include?(source_uri.to_s)
                 puts "dupe source ignored: #{source_uri}"
               else
-                mentions.push({source: source_uri})
+                mentions.push({ source: source_uri })
               end
               Rackblog.Mentions[article_path] = mentions.to_json
               status = 202
@@ -52,17 +52,17 @@ module Rackblog
             doc = self.html_load(mention['source'])
             reply_to_text = self.reply_to_text(doc, target)
             if reply_to_text
-              reply_blob = {text: reply_to_text, author: { url: "", name: ""}}
+              reply_blob = { text: reply_to_text, author: { url: "", name: "" } }
               puts "reply_to = #{reply_blob.to_json}"
               mention['reply_to'] = reply_blob
             end
             like_of = self.like_of(doc, target)
             if like_of
-              like_blob = {author: { url: "", name: ""}}
+              like_blob = { author: { url: "", name: "" } }
               puts "like = #{like_blob.to_json}"
               mention['like'] = like_blob
             end
-puts mention.to_json
+            puts mention.to_json
           rescue SocketError, Errno::EHOSTUNREACH => e
             puts "#{e} #{mention['source']}"
           end
@@ -85,11 +85,11 @@ puts mention.to_json
         puts "- #{entry.name} .#{entry.attributes['class']} has like #{like.inspect}"
         like
       end
-      likes.select{|l| l}.length > 0
+      likes.select { |l| l }.length > 0
     end
 
     def self.has_like_of(entry, target)
-      entry.css(".u-like-of").length > 0 #mf2 ambiguity
+      entry.css(".u-like-of").length > 0 # mf2 ambiguity
     end
 
     def self.reply_to_text(doc, target)
@@ -114,6 +114,5 @@ puts mention.to_json
         text
       end
     end
-
   end
 end
