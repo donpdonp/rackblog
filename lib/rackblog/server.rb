@@ -256,7 +256,7 @@ module Rackblog
       data['slug'] ||= to_slug("/#{now.year}/#{"%02d" % now.month}/#{"%02d" % now.day}/#{data['title']}")
       puts "Saving Key #{data['slug'].inspect} => #{data.to_json}"
       @db[data['slug']] = data.to_json
-      URI.encode(data['slug'][1, data['slug'].length - 1])
+      data['slug'][1, data['slug'].length - 1]
     end
   end
 
