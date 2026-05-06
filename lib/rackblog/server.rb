@@ -126,6 +126,11 @@ module Rackblog
                                                                 :expires => Time.now + (60 * 60 * 24 * 365) })
           return [302, headers.merge({ "Location" => "#{@config[:url]}admin" }), []]
         end
+      elsif req.params['key'] == @config[:apikey]
+        Rack::Utils.set_cookie_header!(headers, "indieauth", {:value => @config[:apikey],
+                                                             :path => URI(@config[:url]).path,
+                                                             :expires => Time.now+(60*60*24*365)})
+        return [302, headers.merge({"Location" => "#{@config[:url]}admin"}), []]
       else
         qstr = URI.encode_www_form({ :me => @config[:indieauth],
                                      :redirect_uri => "#{@config[:url]}admin" })
