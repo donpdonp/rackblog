@@ -1,11 +1,16 @@
 source 'https://rubygems.org'
 
+gem 'csv'
+gem 'rake'
+gem 'bigdecimal'
 gem 'rexml' #ruby3
 gem 'rack'
+gem 'json'
+gem 'rackup'
 gem 'httparty'
 gem 'slim'
 gem 'lmdb'
 gem 'puma'
-gem 'github-markdown'
+gem 'github-markdown', path: 'github-markdown-0.6.9'
 gem 'atom-tools'
 gem 'nokogiri'

@@ -38,7 +38,7 @@ module Rackblog
 
       # response
       status = 200
-      headers = { 'Content-Type' => 'text/html' }
+      headers = { 'content-type' => 'text/html' }
       body_parts = []
 
       if req.get? && req.path_parts.empty?

@@ -2,3 +2,4 @@
 BUNDLE_PATH: "gems"
 BUNDLE_BIN: "bin"
 BUNDLE_DISABLE_SHARED_GEMS: "true"
+BUNDLE_BUILD: "gh-markdown --disable-extensions"
