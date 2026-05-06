@@ -1,4 +1,6 @@
 module Rackblog
+  HTTP_HEADER_LOCATION = "location"
+
   class Server
     # Article
     # {"title"=>"I am title",
@@ -47,16 +49,16 @@ module Rackblog
         if auth_ok?(req)
           body_parts.push(layout('edit'))
         else
-          return [302, headers.merge({ "Location" => "#{@config[:url]}" }), []]
+          return [302, headers.merge({ HTTP_HEADER_LOCATION => "#{@config[:url]}" }), []]
         end
       elsif req.post? && req.path_parts[0] == 'post'
         if auth_ok?(req)
           slug = article_save(req.form)
           post_url = "#{env['rack.url_scheme']}://#{env['HTTP_HOST']}#{URI(@config[:url]).path}#{slug}"
           puts "Redirect: #{post_url}"
-          return [302, headers.merge({ "Location" => post_url }), []]
+          return [302, headers.merge({ HTTP_HEADER_LOCATION => post_url }), []]
         else
-          return [302, headers.merge({ "Location" => "#{@config[:url]}" }), []]
+          return [302, headers.merge({ HTTP_HEADER_LOCATION => "#{@config[:url]}" }), []]
         end
       elsif req.path_parts[0] == 'tag'
         puts "Tag search #{req.path_parts[1]}"
@@ -80,7 +82,7 @@ module Rackblog
           article_path = '/' + req.path_parts[0, req.path_parts.length - 1].join('/')
           puts "delete article path #{article_path}"
           @db.delete(article_path)
-          return [302, headers.merge({ "Location" => "#{@config[:url]}" }), []]
+          return [302, headers.merge({ HTTP_HEADER_LOCATION => "#{@config[:url]}" }), []]
         end
         json = @db.get(article_path)
         if json
@@ -110,7 +112,7 @@ module Rackblog
       if req.params['logout']
         Rack::Utils.delete_cookie_header!(headers, "rackblog", { :value => "",
                                                                  :path => URI(@config[:url]).path })
-        return [302, headers.merge({ "Location" => "#{@config[:url]}" }), []]
+        return [302, headers.merge({ HTTP_HEADER_LOCATION => "#{@config[:url]}" }), []]
       elsif auth_ok?(req)
         body_parts.push(layout('admin'))
       elsif req.params['token']
@@ -124,18 +126,18 @@ module Rackblog
           Rack::Utils.set_cookie_header!(headers, "rackblog", { :value => @config[:apikey],
                                                                 :path => URI(@config[:url]).path,
                                                                 :expires => Time.now + (60 * 60 * 24 * 365) })
-          return [302, headers.merge({ "Location" => "#{@config[:url]}admin" }), []]
+          return [302, headers.merge({ HTTP_HEADER_LOCATION => "#{@config[:url]}admin" }), []]
         end
       elsif req.params['key'] == @config[:apikey]
         Rack::Utils.set_cookie_header!(headers, "indieauth", {:value => @config[:apikey],
                                                              :path => URI(@config[:url]).path,
                                                              :expires => Time.now+(60*60*24*365)})
-        return [302, headers.merge({"Location" => "#{@config[:url]}admin"}), []]
+        return [302, headers.merge({ HTTP_HEADER_LOCATION => "#{@config[:url]}admin"}), []]
       else
         qstr = URI.encode_www_form({ :me => @config[:indieauth],
                                      :redirect_uri => "#{@config[:url]}admin" })
         auth_url = "https://indieauth.com/auth?#{qstr}"
-        return [302, headers.merge({ "Location" => auth_url }), []]
+        return [302, headers.merge({ HTTP_HEADER_LOCATION => auth_url }), []]
       end
       [status, headers, body_parts]
     end
